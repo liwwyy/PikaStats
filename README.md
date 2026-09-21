@@ -6,6 +6,10 @@
 
 PikaStats adds PikaNetwork BedWars statistics to Minecraft Forge 1.8.9. It provides two independently configured OneConfig tables: a TAB replacement that opens with the player-list key and a movable HUD. Made by **liwwyy and movi**.
 
+# Gallery
+![tab](https://github.com/user-attachments/assets/d58cf951-6866-465f-9220-1239072a6972)
+![hud](https://github.com/user-attachments/assets/823a3fbd-08c0-4cad-a5e0-b6d6fcef3075)
+
 ## Installation
 
 1. Install **Minecraft Java Edition 1.8.9** and the [Forge 1.8.9 installer](https://files.minecraftforge.net/net/minecraftforge/forge/index_1.8.9.html). Select the Forge 1.8.9 profile in your launcher and run it once. Use Java 8 to run this Minecraft version.
