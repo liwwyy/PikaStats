@@ -1,9 +1,12 @@
+yaml
 name: Build and release
 
 on:
   push:
-    branches: [main]
-    tags: ['v*.*.*']
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'
   pull_request:
   workflow_dispatch:
 
@@ -13,8 +16,10 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     permissions:
       contents: write
+
     steps:
       - name: Check out source
         uses: actions/checkout@v4
@@ -34,30 +39,57 @@ jobs:
       - name: Build and test Forge 1.8.9
         run: ./gradlew :1.8.9-forge:clean :1.8.9-forge:build --warning-mode fail
 
-      - name: Verify release version and write download notes
+      - name: Prepare release
         if: startsWith(github.ref, 'refs/tags/v')
         shell: bash
         run: |
+          set -euo pipefail
+
           version="${GITHUB_REF_NAME#v}"
           declared="$(sed -n 's/^mod_version=//p' gradle.properties)"
+
+          echo "Tag version:      $version"
+          echo "Declared version: $declared"
+
           if [[ "$version" != "$declared" ]]; then
-            echo "Tag version $version does not match gradle.properties $declared" >&2
+            echo "ERROR: Tag version $version does not match gradle.properties $declared" >&2
             exit 1
           fi
-          jar="PikaStats-1.8.9-forge-${version}.jar"
-          test -f "versions/1.8.9-forge/build/libs/$jar"
-          mkdir -p release
-          cp "versions/1.8.9-forge/build/libs/$jar" release/
-          cat > "$RUNNER_TEMP/release-notes.md" <<NOTES
-          Download **[$jar](https://github.com/liwwyy/PikaStats/releases/download/${GITHUB_REF_NAME}/$jar)** and put it in your Forge 1.8.9 mods folder with OneConfig.
 
-          See the [installation guide](https://github.com/liwwyy/PikaStats#installation) and [changelog](https://github.com/liwwyy/PikaStats/blob/main/CHANGELOG.md) for details.
+          jar="PikaStats-1.8.9-forge-${version}.jar"
+          jar_path="versions/1.8.9-forge/build/libs/$jar"
+
+          if [[ ! -f "$jar_path" ]]; then
+            echo "ERROR: Expected JAR was not found: $jar_path" >&2
+            echo "Available files:" >&2
+            ls -lah versions/1.8.9-forge/build/libs/ >&2
+            exit 1
+          fi
+
+          mkdir -p release
+          cp "$jar_path" "release/$jar"
+
+          cat > "$RUNNER_TEMP/release-notes.md" <<NOTES
+          ## PikaStats ${version}
+
+          Download **[${jar}](https://github.com/liwwyy/PikaStats/releases/download/${GITHUB_REF_NAME}/${jar})** and place it in your Forge 1.8.9 mods folder.
+
+          ### Installation
+
+          See the [installation guide](https://github.com/liwwyy/PikaStats#installation).
+
+          ### Changelog
+
+          See the [CHANGELOG.md](https://github.com/liwwyy/PikaStats/blob/main/CHANGELOG.md).
           NOTES
 
-      - name: Publish release jar
+      - name: Publish release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v3
         with:
+          tag_name: ${{ github.ref_name }}
+          name: PikaStats ${{ github.ref_name }}
           body_path: ${{ runner.temp }}/release-notes.md
           files: release/PikaStats-1.8.9-forge-*.jar
           fail_on_unmatched_files: true
+          generate_release_notes: true
