@@ -188,6 +188,10 @@ public final class RegressionChecks {
               "HUD and TAB remain drawable through their hide animation");
         check(dev.movi.pikastats.render.CatboxCacheRegression.run(),
               "Shutdown clears only downloaded Catbox images and its selection marker");
+        check(dev.movi.pikastats.denick.DenickRegression.run(),
+              "Waiting-room team rewrites denick players without pairing unrelated packets");
+        check(dev.movi.pikastats.tab.MatchOverviewRegression.run(),
+              "Pika player-list match counters parse into the overview pill");
         backgrounds.getMethod("shutdown").invoke(null);
         manager.getMethod("shutdown").invoke(null);
         System.out.println("Passed " + checks + " regression checks.");

@@ -6,6 +6,15 @@ public final class HudMotionRegression {
     private HudMotionRegression() {}
 
     public static boolean run() {
+        HudMotion reordered = new HudMotion();
+        long reorderStart = 500_000_000L;
+        reordered.update(100, 48, Arrays.asList("a", "b", "c"), reorderStart, 100, 100);
+        reordered.update(100, 48, Arrays.asList("c", "a", "b"), reorderStart + 1_000_000L,
+                         100, 100);
+        if (Math.abs(reordered.move("c", reorderStart + 1_000_000L, 100) - 2f) > .01f)
+            return false;
+        if (Math.abs(reordered.move("c", reorderStart + 101_000_000L, 100)) > .01f)
+            return false;
         HudMotion motion = new HudMotion();
         long start = 1_000_000_000L;
         motion.update(100, 24, Arrays.asList("liywy"), start, 100, 100);

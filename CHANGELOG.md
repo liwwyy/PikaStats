@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.5.1
+
+- Add default-on loading-skeleton toggles for TAB and HUD. Player names, heads, and ping appear immediately while only pending stat cells shimmer; low performance mode uses static placeholders.
+- Improve waiting-room denicking by retaining team-create and early roster packets, allowing queued same-team replacements, and widening the tightly bounded replacement window. Add General → Advanced → Debug logging for successful mappings, expired candidates, missing roster evidence, and unresolved API nicks.
+- Add a default-on TAB match overview pill, separated from the table by four pixels, that mirrors Pika's Beds Destroyed, Kills, and Final Kills counters from the vanilla player-list data.
+
+## 1.5.0
+
+- Detect high-confidence original-name to nick replacements from PikaNetwork's ordered waiting-room team rewrite. Denicked rows fetch the original account's stats and show its username in grey italics beside the nick.
+- Replace rows whose stats have not arrived with an animated skeleton placeholder.
+- Animate existing rows vertically when stat sorting changes their position.
+- Center player heads within their rows, render final kills, wins, and beds in grey, and apply stat sorting only in pre-game waiting lobbies.
+- Restore Position as the first inline section in TAB and HUD settings instead of a submenu.
+
 ## 1.4.2
 
 - Add separate hide animations for TAB and HUD. Pop now also works as a hide effect, with independent hide style and duration controls.

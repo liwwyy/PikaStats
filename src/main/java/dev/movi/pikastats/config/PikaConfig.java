@@ -3,15 +3,8 @@ package dev.movi.pikastats.config;
 import cc.polyfrost.oneconfig.config.Config;
 import cc.polyfrost.oneconfig.config.annotations.*;
 import cc.polyfrost.oneconfig.config.core.OneKeyBind;
-import cc.polyfrost.oneconfig.config.core.ConfigUtils;
 import cc.polyfrost.oneconfig.config.data.Mod;
 import cc.polyfrost.oneconfig.config.data.ModType;
-import cc.polyfrost.oneconfig.config.elements.BasicOption;
-import cc.polyfrost.oneconfig.config.elements.OptionCategory;
-import cc.polyfrost.oneconfig.config.elements.OptionSubcategory;
-import cc.polyfrost.oneconfig.config.data.PageLocation;
-import cc.polyfrost.oneconfig.gui.elements.config.ConfigPageButton;
-import cc.polyfrost.oneconfig.gui.pages.ModConfigPage;
 import cc.polyfrost.oneconfig.libs.universal.UKeyboard;
 import dev.movi.pikastats.hud.StatsHud;
 import dev.movi.pikastats.hud.TabHud;
@@ -43,6 +36,8 @@ public final class PikaConfig extends Config {
     @Slider(name = "Ping refresh (ms)", min = 250, max = 3000, step = 50, category = "General",
             subcategory = "Advanced")
     public static int pingUpdateIntervalMs = 1000;
+    @Switch(name = "Debug logging", category = "General", subcategory = "Advanced")
+    public static boolean debugLogging = false;
     @Switch(name = "Highlight party members", category = "General", subcategory = "Party")
     public static boolean partyHighlightEnabled = true;
     @Switch(name = "Party members first", category = "General", subcategory = "Party")
@@ -52,18 +47,10 @@ public final class PikaConfig extends Config {
     @KeyBind(name = "Toggle PikaStats", category = "General", subcategory = "Hotkeys")
     public static OneKeyBind toggleOverlayKey = new OneKeyBind(0);
 
-    public static final class TabPositionPage {
-        @Button(name = "Edit TAB position", text = "Open", category = "Position", subcategory = "Controls")
-        public static Runnable edit = dev.movi.pikastats.hud.HudEditor::open;
-    }
-    public static final class HudPositionPage {
-        @Button(name = "Edit HUD position", text = "Open", category = "Position", subcategory = "Controls")
-        public static Runnable edit = dev.movi.pikastats.hud.HudEditor::open;
-    }
-    @Page(name = "Position", location = PageLocation.TOP, category = "TAB")
-    public TabPositionPage tabPositionPage = new TabPositionPage();
     @HUD(name = "TAB", category = "TAB", subcategory = "Position")
     public TabHud tabHud = new TabHud();
+    @Button(name = "Edit TAB position", text = "Open", category = "TAB", subcategory = "Position")
+    public static Runnable editTabPosition = dev.movi.pikastats.hud.HudEditor::open;
 
     // Legacy setting, migrated into the OneConfig TAB HUD's enable switch.
     public static boolean tabEnabled = true;
@@ -85,6 +72,10 @@ public final class PikaConfig extends Config {
     public static boolean tabShowHeader = true;
     @Switch(name = "Player heads", category = "TAB", subcategory = "Appearance")
     public static boolean tabShowPlayerHeads = true;
+    @Switch(name = "Loading skeleton", category = "TAB", subcategory = "Appearance")
+    public static boolean tabLoadingSkeleton = true;
+    @Switch(name = "Match overview", category = "TAB", subcategory = "Appearance")
+    public static boolean tabMatchOverview = true;
     @Switch(name = "Alternating rows", category = "TAB", subcategory = "Appearance")
     public static boolean tabAlternatingRows = true;
     @Switch(name = "Column dividers", category = "TAB", subcategory = "Appearance")
@@ -174,10 +165,10 @@ public final class PikaConfig extends Config {
     @Slider(name = "Image size (%)", min = 10, max = 200, step = 5, category = "TAB",
             subcategory = "Image")
     public static int tabImageSize = 100;
-    @Page(name = "Position", location = PageLocation.TOP, category = "HUD")
-    public HudPositionPage hudPositionPage = new HudPositionPage();
     @HUD(name = "Player stats", category = "HUD", subcategory = "Position")
     public StatsHud statsHud = new StatsHud();
+    @Button(name = "Edit HUD position", text = "Open", category = "HUD", subcategory = "Position")
+    public static Runnable editHudPosition = dev.movi.pikastats.hud.HudEditor::open;
 
     @Switch(name = "Always show", category = "HUD", subcategory = "Core")
     public static boolean hudAlwaysShow = false;
@@ -197,6 +188,8 @@ public final class PikaConfig extends Config {
     public static boolean hudShowHeader = true;
     @Switch(name = "Player heads", category = "HUD", subcategory = "Appearance")
     public static boolean hudShowPlayerHeads = true;
+    @Switch(name = "Loading skeleton", category = "HUD", subcategory = "Appearance")
+    public static boolean hudLoadingSkeleton = true;
     @Switch(name = "Alternating rows", category = "HUD", subcategory = "Appearance")
     public static boolean hudAlternatingRows = true;
     @Switch(name = "Column dividers", category = "HUD", subcategory = "Appearance")
@@ -331,8 +324,6 @@ public final class PikaConfig extends Config {
               "pikastats.json");
         INSTANCE = this;
         initialize();
-        movePositionControls("TAB");
-        movePositionControls("HUD");
         migrateSettings();
         sanitizeLoadedValues();
         save();
@@ -351,22 +342,6 @@ public final class PikaConfig extends Config {
             }
         });
     }
-    private void movePositionControls(String category) {
-        OptionCategory group = mod.defaultPage.categories.get(category);
-        if (group == null) return;
-        OptionSubcategory controls = ConfigUtils.getSubCategory(mod.defaultPage, category, "Position");
-        ConfigPageButton button = null;
-        for (OptionSubcategory section : group.subcategories)
-            for (ConfigPageButton candidate : section.topButtons)
-                if ("Position".equals(candidate.name)) button = candidate;
-        if (button == null || !(button.page instanceof ModConfigPage)) return;
-        ModConfigPage page = (ModConfigPage) button.page;
-        OptionSubcategory target = ConfigUtils.getSubCategory(page.getPage(), "Position", "Controls");
-        target.options.addAll(controls.options);
-        controls.options.clear();
-        group.subcategories.remove(controls);
-    }
-
     @Override
     public void load() {
         // A profile without this field must migrate even after switching profiles.

@@ -90,7 +90,7 @@ public final class PlayerStats {
     }
     private String number(Integer value) {
         return value == null ? EnumChatFormatting.DARK_GRAY + "?"
-                             : EnumChatFormatting.WHITE + Integer.toString(value);
+                             : EnumChatFormatting.GRAY + Integer.toString(value);
     }
     private String colorFor(double value, double[] t) {
         EnumChatFormatting[] c = {EnumChatFormatting.GRAY, EnumChatFormatting.GREEN,

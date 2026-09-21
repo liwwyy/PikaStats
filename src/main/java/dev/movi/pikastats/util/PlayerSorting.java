@@ -17,10 +17,11 @@ public final class PlayerSorting {
         return sortPlayers(players, true);
     }
     public static List<NetworkPlayerInfo> sortPlayers(List<NetworkPlayerInfo> players, boolean tab) {
-        if (ScoreboardUtil.bedWarsState() == ScoreboardUtil.BedWarsState.IN_GAME)
-            return players;
+        ScoreboardUtil.BedWarsState state = ScoreboardUtil.bedWarsState();
+        if (state == ScoreboardUtil.BedWarsState.IN_GAME) return players;
         final boolean partyFirst = PikaConfig.partySortFirst && PartyTracker.isInParty();
-        final boolean statSort = tab ? PikaConfig.tabSortEnabled : PikaConfig.hudSortEnabled;
+        final boolean statSort = state == ScoreboardUtil.BedWarsState.WAITING &&
+            (tab ? PikaConfig.tabSortEnabled : PikaConfig.hudSortEnabled);
         if (!partyFirst && !statSort)
             return players;
         final TabSortStat stat = TabSortStat.fromIndex(tab ? PikaConfig.tabSortStat : PikaConfig.hudSortStat);

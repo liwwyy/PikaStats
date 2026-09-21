@@ -2,6 +2,7 @@ package dev.movi.pikastats.api;
 
 import com.google.gson.*;
 import dev.movi.pikastats.config.PikaConfig;
+import dev.movi.pikastats.denick.DenickRegistry;
 import dev.movi.pikastats.model.PlayerStats;
 import dev.movi.pikastats.util.LegacyText;
 import java.io.*;
@@ -45,10 +46,19 @@ public final class StatsManager {
     private StatsManager() {}
 
     public static PlayerStats peek(String username) {
+        username = DenickRegistry.resolve(username);
         if (!valid(username))
             return null;
         return CACHE.get(
             key(username, PikaConfig.bedWarsMode().apiName, PikaConfig.statsPeriodValue().apiName));
+    }
+
+    public static boolean isLoading(String username) {
+        username = DenickRegistry.resolve(username);
+        if (!valid(username)) return false;
+        String k = key(username, PikaConfig.bedWarsMode().apiName,
+                       PikaConfig.statsPeriodValue().apiName);
+        return FETCHING.contains(k) || (CACHE.get(k) == null && LAST_ATTEMPT.containsKey(k));
     }
 
     public static void prime(Collection<String> usernames) {
@@ -59,6 +69,7 @@ public final class StatsManager {
         int limit = clamp(PikaConfig.maxPlayersToFetch, 1, 40), used = 0;
         HashSet<String> seen = new HashSet<String>();
         for (String username : usernames) {
+            username = DenickRegistry.resolve(username);
             if (used >= limit || !valid(username))
                 continue;
             String lower = username.toLowerCase(Locale.ROOT);
@@ -406,6 +417,7 @@ public final class StatsManager {
     }
 
     private static PlayerStats nicked(PlayerStats p, int status) {
+        DenickRegistry.reportUnresolved(p.username, "Pika API returned HTTP " + status);
         p.timestamp = System.currentTimeMillis();
         p.nicked = true;
         p.failed = false;

@@ -28,6 +28,7 @@ Only the release jar and OneConfig are needed. The release contains Poppins and 
 - **Only on PikaNetwork:** restricts tables and nametag stats to PikaNetwork servers.
 - **BedWars mode:** choose Overall, Solo, Doubles, or Quads. **Stats period:** Lifetime, Weekly, Monthly, or Yearly.
 - **Max API players, cache TTL, and ping refresh:** control request volume, how long results remain cached, and ping update frequency.
+- **Debug logging:** records denick mappings and explains missed or unresolved denick attempts in the game console. Enable it before entering a waiting room when diagnosing a player.
 - **Highlight party members / Party members first:** mark party members and move them ahead of other waiting-lobby players.
 - **Font:** Minecraft, bundled Poppins, or Custom TTF. For Custom TTF, place a `.ttf` in `.minecraft/config/pikastats/fonts/` and enter its exact filename. Files in the old `config/pikastats/` location still work. A missing or invalid font falls back to Minecraft's font.
 - **Low performance mode:** skips animation, glass effects, custom images, player heads, and custom fonts while keeping the table readable.
@@ -41,9 +42,12 @@ Only the release jar and OneConfig are needed. The release contains Poppins and 
 - **TAB enable switch:** enables the duplicate HUD at the top center, where vanilla TAB normally opens. Holding the player-list key shows it and hides vanilla TAB.
 - **Always show / Show in waiting lobby / Show in game:** choose the BedWars states in which TAB can open. The player-list key is still required.
 - **Combine rank with name:** on by default. **Sort waiting-lobby TAB / Sort statistic:** order players by FKDR, WLR, highest winstreak, final kills, wins, beds, or level.
+- In pre-game waiting rooms, PikaStats recognizes the server's ordered original-name replacement packets. A resolved nick shows its original username in grey italics and uses the original account for stats. Unresolved nicks remain marked NICKED.
 - **Columns and column order:** show or hide level, rank, name, highest winstreak, FKDR, WLR, final kills, wins, beds, and ping. Set their order with the comma-separated field.
+- **Loading skeleton:** enabled by default. Names, player heads, and ping appear immediately; pending API stat cells use animated placeholders. Low performance mode keeps the placeholders static.
+- **Match overview:** enabled by default. Beds Destroyed, Kills, and Final Kills from Pika's vanilla player-list data appear in a separate rounded pill four pixels below TAB during a match.
 - **Appearance:** max TAB players, header, player heads, alternating rows, column dividers, glass background, and background opacity. Show and hide animations each offer None, Slide, Zoom, Bounce, and Pop with separate duration controls. Resize, new-player, and disconnect animations also have separate controls.
-- **Position and scale:** open the **Position** page in TAB settings to edit or reset the position. The editor lets you drag and resize TAB, including outside BedWars.
+- **Position and scale:** the first TAB section contains the OneConfig position, reset, lock, scale, alignment, and editor controls. The editor lets you drag and resize TAB, including outside BedWars.
 - **Image:** choose a PNG from `config/pikastats/backgrounds/`, a random PNG from that folder, or an optional random Catbox image, plus opacity, size, and left/center/right placement. TAB and HUD choices are independent. Use **Request new waifu image** to fetch another selection.
 
 </details>
@@ -54,8 +58,9 @@ Only the release jar and OneConfig are needed. The release contains Poppins and 
 - **Always show / Show in waiting lobby / Show in game:** choose when the persistent HUD appears. **Hide while TAB is held** prevents overlap.
 - **Combine rank with name:** on by default. **Sort waiting-lobby HUD / Sort statistic:** control HUD ordering separately from TAB. **Max HUD players** limits the number of rows.
 - **Columns and column order:** independently show, hide, and reorder the same statistics available in TAB.
+- **Loading skeleton:** independently controls pending-stat placeholders for HUD while keeping player identity visible immediately.
 - **Appearance:** header, player heads, alternating rows, column dividers, glass background, background opacity, and separate popup, resize, new-player, and disconnect animations.
-- **Position and scale:** open the **Position** page in HUD settings to edit or reset the position. The editor lets you drag and resize **Player stats**.
+- **Position and scale:** the first HUD section contains the OneConfig position, reset, lock, scale, alignment, and editor controls. The editor lets you drag and resize **Player stats**.
 - **Image:** independently choose a PNG from `config/pikastats/backgrounds/`, a random PNG from that folder, or random Catbox image, plus opacity, size, and left/center/right placement.
 
 </details>

@@ -1,6 +1,7 @@
 package dev.movi.pikastats.tab;
 
 import dev.movi.pikastats.config.PikaConfig;
+import dev.movi.pikastats.denick.DenickRegistry;
 import dev.movi.pikastats.model.PlayerStats;
 import dev.movi.pikastats.party.PartyTracker;
 import dev.movi.pikastats.util.PingDisplay;
@@ -150,6 +151,11 @@ public final class TabFormat {
     }
     public static String rank(PlayerStats s) {
         return s == null ? EnumChatFormatting.GRAY + "-" : s.rankText();
+    }
+    public static String combinedSecondary(NetworkPlayerInfo info, PlayerStats s) {
+        String real = DenickRegistry.realName(PlayerListUtil.profileName(info));
+        return real == null ? rank(s)
+            : EnumChatFormatting.GRAY.toString() + EnumChatFormatting.ITALIC + real;
     }
     public static String name(NetworkPlayerInfo info) {
         String username = PlayerListUtil.profileName(info);

@@ -19,6 +19,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 
 /** Forge 1.8.9 client entry point for PikaStats. */
 @Mod(modid = PikaStatsMod.MOD_ID, name = PikaStatsMod.MOD_NAME, version = PikaStatsMod.VERSION,
@@ -68,6 +69,12 @@ public final class PikaStatsMod {
     public static void requestConfigOpen() {
         if (INSTANCE != null)
             INSTANCE.configOpenTicks = 2;
+    }
+
+    @SubscribeEvent
+    public void onDisconnect(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
+        dev.movi.pikastats.denick.DenickRegistry.clear();
+        dev.movi.pikastats.tab.MatchOverview.clear();
     }
 
     @SubscribeEvent

@@ -9,6 +9,7 @@ import dev.movi.pikastats.render.OverlayText;
 import dev.movi.pikastats.render.PanelBackground;
 import dev.movi.pikastats.render.RenderUtil;
 import dev.movi.pikastats.tab.TabFormat;
+import dev.movi.pikastats.tab.MatchOverview;
 import dev.movi.pikastats.util.PlayerListUtil;
 import dev.movi.pikastats.util.PlayerSorting;
 import java.util.ArrayList;
@@ -22,7 +23,7 @@ import net.minecraft.world.WorldSettings;
 
 public final class StatsHudRenderer {
     private static final int ROW_H = 12, HEADER_H = 14, TITLE_H = 14, CELL_PAD = 4, HEAD_SLOT = 10,
-                             OUTER = 5, COMBINED_GAP = 7;
+                             OUTER = 5, COMBINED_GAP = 7, PILL_H = 14, PILL_GAP = 4;
     private StatsHudRenderer() {}
     private static final class Snapshot {
         final List<TabFormat.Column> cols;
@@ -31,9 +32,10 @@ public final class StatsHudRenderer {
         final List<NetworkPlayerInfo> departing;
         final List<NetworkPlayerInfo> display;
         final int head, w, h;
+        final String overview;
         final boolean demo;
         Snapshot(List<TabFormat.Column> c, int[] wi, List<NetworkPlayerInfo> p, int head, int w,
-                 int h, boolean d) {
+                 int h, boolean d, String overview) {
             cols = c;
             widths = wi;
             players = p;
@@ -43,6 +45,7 @@ public final class StatsHudRenderer {
             this.w = w;
             this.h = h;
             demo = d;
+            this.overview = overview;
         }
     }
     private static volatile Snapshot cachedHud, cachedTab;
@@ -159,7 +162,7 @@ public final class StatsHudRenderer {
                     int m = cols.get(i).id.equals("name") &&
                             (tab ? PikaConfig.combineRankWithName : PikaConfig.hudCombineRankWithName)
                                 ? f.getStringWidth(TabFormat.name(info)) + COMBINED_GAP +
-                                      f.getStringWidth(TabFormat.rank(st))
+                                      f.getStringWidth(TabFormat.combinedSecondary(info, st))
                                 : f.getStringWidth(TabFormat.cell(cols.get(i), info, st));
                     widths[i] = Math.max(widths[i], m);
                 }
@@ -193,9 +196,12 @@ public final class StatsHudRenderer {
             }
         }
         int rows = demo ? 2 : players.size();
+        String overview = tab && !demo && PikaConfig.tabMatchOverview ? MatchOverview.text() : null;
         int h = ((tab ? PikaConfig.tabShowHeader : PikaConfig.hudShowHeader)
             ? TITLE_H + HEADER_H : 0) + Math.max(1, rows) * ROW_H;
-        return new Snapshot(cols, widths, players, head, Math.max(1, w), Math.max(1, h), demo);
+        if (overview != null) h += OUTER + PILL_GAP + PILL_H;
+        return new Snapshot(cols, widths, players, head, Math.max(1, w), Math.max(1, h), demo,
+                            overview);
     }
     private static void draw(Snapshot s, float screenX, float screenY, float scale,
                              boolean tab, float progress, int animationMode) {
@@ -205,11 +211,13 @@ public final class StatsHudRenderer {
         long now = System.nanoTime();
         float panelW = s.demo ? s.w : motion.width(now, duration(tab));
         float panelH = s.demo ? s.h : motion.height(now, duration(tab));
+        int overviewExtra = s.overview == null ? 0 : OUTER + PILL_GAP + PILL_H;
+        float tableH = Math.max(1f, panelH - overviewExtra);
         try (OverlayRenderState state = new OverlayRenderState()) {
             GlStateManager.scale(scale, scale, 1f);
             if (!PikaConfig.lowPerformanceMode && progress < 1f)
                 animate(s, bx, by, progress, animationMode);
-            PanelBackground.draw(bx - OUTER, by - OUTER, bx + panelW + OUTER, by + panelH + OUTER,
+            PanelBackground.draw(bx - OUTER, by - OUTER, bx + panelW + OUTER, by + tableH + OUTER,
                                  tab ? PikaConfig.tabBackgroundOpacity : PikaConfig.hudBackgroundOpacity,
                                  !PikaConfig.lowPerformanceMode &&
                                      (tab ? PikaConfig.tabGlass : PikaConfig.hudGlass),
@@ -221,6 +229,17 @@ public final class StatsHudRenderer {
                         (Math.abs(panelW - s.w) > .1f || Math.abs(panelH - s.h) > .1f ||
                          motion.entering(now, tab ? PikaConfig.tabEntryDuration : PikaConfig.hudEntryDuration)
                          || !s.departing.isEmpty()))) {
+            if (s.overview != null) {
+                int textW = f.getStringWidth(s.overview);
+                float pillW = Math.min(panelW, textW + 16f);
+                float pillX = bx + (panelW - pillW) / 2f;
+                float pillY = by + tableH + OUTER + PILL_GAP;
+                RenderUtil.roundedRect(pillX, pillY, pillX + pillW, pillY + PILL_H, 7,
+                    RenderUtil.withAlpha(0x101217,
+                        tab ? PikaConfig.tabBackgroundOpacity : PikaConfig.hudBackgroundOpacity));
+                center(f, s.overview, Math.round(bx + panelW / 2f), Math.round(pillY),
+                       Math.round(pillW), PILL_H);
+            }
             int y = Math.round(by);
             if (tab ? PikaConfig.tabShowHeader : PikaConfig.hudShowHeader) {
                 String title = "§aPikaStats§8 • §7" + PikaConfig.bedWarsMode().label + "§8 • §7" +
@@ -255,6 +274,9 @@ public final class StatsHudRenderer {
                 int rowX = Math.round(bx) + (entryMode == 1 ? -offset : entryMode == 2 ? offset : 0)
                     + (exitMode == 1 ? -exit : exitMode == 2 ? exit : 0);
                 int rowY = y + (entryMode == 3 ? offset : 0) + (exitMode == 3 ? exit : 0);
+                if (info != null && !leaving && !PikaConfig.lowPerformanceMode)
+                    rowY += Math.round(motion.move(PlayerListUtil.profileName(info), now,
+                                                   duration(tab)) * ROW_H);
                 PlayerStats st =
                     info == null ? null : StatsManager.peek(PlayerListUtil.profileName(info));
                 String status = info == null ? null : TabFormat.status(st);
@@ -262,8 +284,16 @@ public final class StatsHudRenderer {
                 if ((tab ? PikaConfig.tabAlternatingRows : PikaConfig.hudAlternatingRows)
                     && r % 2 == 0)
                     RenderUtil.rect(rowX, rowY, rowX + s.w, rowY + ROW_H, 0x11FFFFFF);
+                boolean loadingSkeleton = tab ? PikaConfig.tabLoadingSkeleton
+                                              : PikaConfig.hudLoadingSkeleton;
+                if (info != null && st == null && loadingSkeleton) {
+                    loadingRow(f, info, rowX, rowY, s, now,
+                               tab ? PikaConfig.tabColumnDividers : PikaConfig.hudColumnDividers);
+                    y += ROW_H;
+                    continue;
+                }
                 if (info != null && s.head > 0)
-                    head(info, rowX + 1, rowY + 1);
+                    head(info, rowX + 1, rowY + 2);
                 int x = rowX + s.head, sx = -1, sw = 0;
                 for (int i = 0; i < s.cols.size(); i++) {
                     if (span != null && i >= span[0] && i <= span[1]) {
@@ -279,7 +309,7 @@ public final class StatsHudRenderer {
                                        : (s.cols.get(i).id.equals("name") ? "§7No players" : "");
                     else if (s.cols.get(i).id.equals("name") &&
                             (tab ? PikaConfig.combineRankWithName : PikaConfig.hudCombineRankWithName)) {
-                        String name = TabFormat.name(info), rank = TabFormat.rank(st);
+                        String name = TabFormat.name(info), rank = TabFormat.combinedSecondary(info, st);
                         combined(f, name, rank, x, rowY, s.widths[i]);
                         x += s.widths[i];
                         continue;
@@ -296,6 +326,32 @@ public final class StatsHudRenderer {
             }
             }
         }
+    }
+    private static void loadingRow(OverlayText f, NetworkPlayerInfo info, int rowX, int rowY,
+                                   Snapshot s, long now, boolean showDividers) {
+        double wave = PikaConfig.lowPerformanceMode ? .5
+            : .5 + .5 * Math.sin(now / 180_000_000.0);
+        int alpha = 30 + (int)(wave * 28);
+        int color = RenderUtil.withAlpha(0xAEB5BF, alpha);
+        if (s.head > 0) {
+            head(info, rowX + 1, rowY + 2);
+        }
+        int x = rowX + s.head;
+        for (int i = 0; i < s.widths.length; i++) {
+            TabFormat.Column column = s.cols.get(i);
+            if (column.id.equals("name"))
+                cell(f, TabFormat.name(info), x, rowY, s.widths[i], ROW_H, false);
+            else if (column.id.equals("ping"))
+                cell(f, TabFormat.cell(column, info, null), x, rowY, s.widths[i], ROW_H, true);
+            else {
+                int width = Math.max(3, s.widths[i] - CELL_PAD * 2);
+                int fill = Math.max(3, Math.round(width * (i % 3 == 0 ? .62f : i % 3 == 1 ? .78f : .48f)));
+                RenderUtil.roundedRect(x + CELL_PAD, rowY + 4,
+                                       x + CELL_PAD + fill, rowY + 8, 2, color);
+            }
+            x += s.widths[i];
+        }
+        if (showDividers) dividers(rowX, rowY, rowY + ROW_H, s.head, s.widths, null);
     }
     private static void animate(Snapshot s, float bx, float by, float progress, int animation) {
         float eased = 1f - (float)Math.pow(1f - progress, 3);

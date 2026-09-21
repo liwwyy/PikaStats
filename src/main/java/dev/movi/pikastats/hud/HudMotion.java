@@ -13,13 +13,19 @@ final class HudMotion {
     private boolean initialized;
     private final Map<String, Long> joinedAt = new HashMap<String, Long>();
     private final Map<String, Long> leftAt = new HashMap<String, Long>();
+    private final Map<String, Integer> rowIndex = new HashMap<String, Integer>();
+    private final Map<String, Float> moveFrom = new HashMap<String, Float>();
+    private final Map<String, Long> movedAt = new HashMap<String, Long>();
 
     void update(float width, float height, List<String> names, long now, int durationMs,
                 int exitDurationMs) {
         if (!initialized) {
             fromW = targetW = width;
             fromH = targetH = height;
-            for (String name : names) joinedAt.put(name, 0L);
+            for (int i = 0; i < names.size(); i++) {
+                joinedAt.put(names.get(i), 0L);
+                rowIndex.put(names.get(i), i);
+            }
             initialized = true;
         } else {
             if (width != targetW || height != targetH) {
@@ -37,8 +43,26 @@ final class HudMotion {
                 leftAt.remove(name);
                 if (!joinedAt.containsKey(name)) joinedAt.put(name, now);
             }
+            for (int i = 0; i < names.size(); i++) {
+                String name = names.get(i);
+                Integer old = rowIndex.get(name);
+                if (old != null && old != i) {
+                    moveFrom.put(name, move(name, now, durationMs) + old - i);
+                    movedAt.put(name, now);
+                }
+                rowIndex.put(name, i);
+            }
+            rowIndex.keySet().retainAll(present);
+            moveFrom.keySet().retainAll(present);
+            movedAt.keySet().retainAll(present);
             leftAt.entrySet().removeIf(e -> progress(now, e.getValue(), exitDurationMs) >= 1f);
         }
+    }
+    float move(String name, long now, int durationMs) {
+        Float from = moveFrom.get(name);
+        Long start = movedAt.get(name);
+        if (from == null || start == null) return 0f;
+        return from * (1f - ease(progress(now, start, durationMs)));
     }
     Set<String> leaving(long now, int durationMs) {
         Set<String> result = new HashSet<String>();
