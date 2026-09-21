@@ -1,0 +1,16 @@
+[
+  {
+    "modid": "${id}",
+    "name": "${name}",
+    "description": "PikaNetwork BedWars stats with twin TAB and HUD overlays and nametags for Forge 1.8.9.",
+    "version": "${version}",
+    "mcversion": "${mcVersionStr}",
+    "url": "https://github.com/liwwyy/PikaStats",
+    "updateUrl": "",
+    "authorList": ["liwwyy", "movi"],
+    "credits": "Original 1.21.11 Fabric implementation and Pika API behavior preserved in the Forge backport.",
+    "logoFile": "assets/pikastats/icon.png",
+    "screenshots": [],
+    "dependencies": []
+  }
+]

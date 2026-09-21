@@ -1,0 +1,63 @@
+name: Build and release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*.*.*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Java 8 compiler and Java 21 build runtime
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: |
+            8
+            21
+          cache: gradle
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
+      - name: Build and test Forge 1.8.9
+        run: ./gradlew :1.8.9-forge:clean :1.8.9-forge:build --warning-mode fail
+
+      - name: Verify release version and write download notes
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          declared="$(sed -n 's/^mod_version=//p' gradle.properties)"
+          if [[ "$version" != "$declared" ]]; then
+            echo "Tag version $version does not match gradle.properties $declared" >&2
+            exit 1
+          fi
+          jar="PikaStats-1.8.9-forge-${version}.jar"
+          test -f "versions/1.8.9-forge/build/libs/$jar"
+          mkdir -p release
+          cp "versions/1.8.9-forge/build/libs/$jar" release/
+          cat > "$RUNNER_TEMP/release-notes.md" <<NOTES
+          Download **[$jar](https://github.com/liwwyy/PikaStats/releases/download/${GITHUB_REF_NAME}/$jar)** and put it in your Forge 1.8.9 mods folder with OneConfig.
+
+          See the [installation guide](https://github.com/liwwyy/PikaStats#installation) and [changelog](https://github.com/liwwyy/PikaStats/blob/main/CHANGELOG.md) for details.
+          NOTES
+
+      - name: Publish release jar
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v3
+        with:
+          body_path: ${{ runner.temp }}/release-notes.md
+          files: release/PikaStats-1.8.9-forge-*.jar
+          fail_on_unmatched_files: true

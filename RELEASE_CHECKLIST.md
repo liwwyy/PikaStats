@@ -1,0 +1,21 @@
+# Release checklist
+
+- [x] Run `./gradlew :1.8.9-forge:clean :1.8.9-forge:build --warning-mode fail` on JDK 21 with JDK 8 available.
+- [x] Run the offscreen render-state smoke check: 500 frames with no GL errors; compile/link glass shaders on the driver.
+- [ ] Upgrade an existing profile with conflicting master switches; verify the HUD and OneConfig editor appear, then verify one master switch controls all features after restart.
+- [ ] Drag the release jar (not dev/sources) into Forge 1.8.9 on Java 8 without a separate OneConfig jar; verify the loader installs OneConfig.
+- [ ] Check `/pikastats`, O, `/stats`, community buttons and all settings categories. Open the TAB and HUD Position pages and confirm each contains its editor and reset controls.
+- [ ] Enter OneConfig's HUD editor outside BedWars; drag and resize the dummy table, close, restart and verify its anchor/scale.
+- [ ] Check no-player lists, disconnect/reconnect, waiting lobby and in-game visibility.
+- [ ] Hold/release TAB repeatedly with the duplicate HUD enabled; confirm vanilla TAB and VanillaHUD's empty background stay hidden, while VanillaHUD works normally when PikaStats TAB is disabled.
+- [ ] Show and hide TAB and HUD repeatedly; check each hide style, especially Pop, and duration. Add/remove players and switch sort order; check smooth panel resizing, entry and disconnect slides, text fit, and row alignment at multiple GUI scales.
+- [ ] Enable low performance mode and confirm instant popup, resize, entries and exits, plus basic panels without glass, images, player heads or custom TTF.
+- [ ] Check glass on/off, opacity, corners, header/footer, row stripes and narrow window layouts at multiple GUI scales.
+- [ ] Check HUD/TAB with Patcher caching, OptiFine and VanillaHUD; verify glass samples the world correctly and both overlays animate without GL stack errors.
+- [ ] Check Minecraft, resource-pack and custom TTF fonts, colored names, Unicode and grey italic spectator names.
+- [ ] Put separate PNGs in `backgrounds/` and a TTF in `fonts/`; check manual and random local backgrounds, independent TAB/HUD selections, transparency, opacity, alignment and size. Turn on Keep image size, change player counts, and confirm image scale stays fixed until reload. Check legacy locations, missing/corrupt files and oversized images.
+- [ ] Enable Catbox, request new waifu images separately for TAB and HUD, exit Minecraft, and confirm `catbox-cache` no longer holds downloaded images. Check the image size limit.
+- [ ] Check nametag master default off, waiting visibility preselected, waiting-only/game-only/both visibility and no labels outside BedWars; check stat modes, white brackets, distance, invisible/sneaking players and nametag-mod compatibility.
+- [ ] Check zero stats, NO STATS, API DISABLED, NICKED, network failures, party highlight and sorting.
+- [x] Confirm author names, 128-pixel icon, version and release jar contents.
+- [ ] Publish only after the client checks above pass.

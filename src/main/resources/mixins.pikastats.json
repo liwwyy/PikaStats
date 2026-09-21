@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.7.11",
+  "package": "dev.movi.pikastats.mixin",
+  "refmap": "mixins.pikastats.refmap.json",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [],
+  "client": [
+    "VanillaHudTabMixin",
+    "PlayerNametagMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
