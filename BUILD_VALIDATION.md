@@ -11,7 +11,8 @@ Validated on 2026-09-23 for PikaStats 1.5.2, Forge 1.8.9.
 
 `versions/1.8.9-forge/build/libs/PikaStats-1.8.9-forge-1.5.2.jar`
 
-Size: 481,187 bytes. SHA-256: `a316f9eb2c0f518ece67175af6fa8f2e801e0f5bed618afa571e5cd766445cd6`.
+Local validation build: 481,187 bytes; SHA-256 `a316f9eb2c0f518ece67175af6fa8f2e801e0f5bed618afa571e5cd766445cd6`.
+GitHub Actions release asset: 476,260 bytes; SHA-256 `b80ff7489b598b29785684fddbcefc003ec70ad9f89e9fe6c581de56c936a605`. All jar entries have identical contents; the archive size differs because of build environment packaging.
 
 ## Client validation still required
 
