@@ -1,6 +1,6 @@
 # Build validation
 
-Validated on 2026-09-22 for PikaStats 1.5.1, Forge 1.8.9.
+Validated on 2026-09-23 for PikaStats 1.5.2, Forge 1.8.9.
 
 - The clean Java 21 build passed with warnings treated as errors and Java 8 output: `./gradlew :1.8.9-forge:clean :1.8.9-forge:build --offline --warning-mode fail`.
 - All 48 headless regression checks passed, including early and queued denick pairing, match-overview parsing, vertical row movement, smooth panel retargeting, new-player and disconnect timing, show/hide timing, Catbox cache cleanup, profile migration, and independent TAB/HUD settings.
@@ -9,10 +9,10 @@ Validated on 2026-09-22 for PikaStats 1.5.1, Forge 1.8.9.
 
 ## Release artifact
 
-`versions/1.8.9-forge/build/libs/PikaStats-1.8.9-forge-1.5.1.jar`
+`versions/1.8.9-forge/build/libs/PikaStats-1.8.9-forge-1.5.2.jar`
 
-Size: 478,488 bytes. SHA-256: `b3c60636233e9ac597eaa1e818290cfc602ef217e03b6edb16d3b3b07c49bfb0`.
+Size: 481,187 bytes. SHA-256: `a316f9eb2c0f518ece67175af6fa8f2e801e0f5bed618afa571e5cd766445cd6`.
 
 ## Client validation still required
 
-The user confirmed 1.3.2 runs without crashes in the full modpack. Version 1.5.1 was not launched in Minecraft here. Validate improved denick capture and debug output against live PikaNetwork packets, immediate player identity with TAB/HUD skeleton toggles, the match-overview pill and live counter updates, low performance mode, and VanillaHUD compatibility. See [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md).
+The user confirmed 1.3.2 runs without crashes in the full modpack. Version 1.5.2 was not launched in Minecraft here. Validate world-change visibility, BedWars-only gating, both nametag modes, self-join party refresh, denick debug stages, the match-overview pill, low performance mode, and VanillaHUD compatibility. See [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md).

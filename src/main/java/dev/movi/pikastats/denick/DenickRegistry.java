@@ -22,6 +22,9 @@ public final class DenickRegistry {
     private static final Map<String, ArrayDeque<Pending>> REMOVED =
         new HashMap<String, ArrayDeque<Pending>>();
     private static final Map<String, String> REAL_BY_NICK = new HashMap<String, String>();
+    private static final Map<String, String> LAST_STAGE = new HashMap<String, String>();
+    private static int ignoredOutsideWaiting;
+    private static int rosterEvents;
 
     private static final class Pending {
         final String original;
@@ -35,6 +38,7 @@ public final class DenickRegistry {
     private DenickRegistry() {}
 
     public static synchronized void observe(S3EPacketTeams packet) {
+        if (!PikaConfig.denicking) return;
         observe(packet.getAction(), packet.getName(), packet.getPlayers(),
                 ScoreboardUtil.isPikaNetwork() &&
                     ScoreboardUtil.bedWarsState() == ScoreboardUtil.BedWarsState.WAITING,
@@ -43,6 +47,7 @@ public final class DenickRegistry {
 
     static synchronized void observe(int action, String team, Iterable<String> players,
                                      boolean waiting, long now) {
+        if (!PikaConfig.denicking) return;
         if (action != 0 && action != 3 && action != 4) return;
         ArrayList<String> names = new ArrayList<String>();
         for (String player : players)
@@ -55,13 +60,21 @@ public final class DenickRegistry {
             ADDED.put(team, roster);
         }
         if (action == 0 || action == 3) {
+            rosterEvents++;
             if (action == 3 && waiting && names.size() == 1)
                 match(team, names.get(0), now);
-            for (String name : names) roster.put(lower(name), now);
+            for (String name : names) {
+                roster.put(lower(name), now);
+                if (action == 0 || !LAST_STAGE.containsKey(lower(name)))
+                    LAST_STAGE.put(lower(name), "seen in team " + team + " roster (action " + action + ", waiting=" + waiting + ")");
+            }
             return;
         }
 
         if (!waiting) {
+            ignoredOutsideWaiting++;
+            for (String name : names)
+                LAST_STAGE.put(lower(name), "team " + team + " removal ignored because BedWars waiting state was not detected");
             debug("Ignored removal outside a BedWars waiting room: team={} players={}", team, names);
             return;
         }
@@ -72,37 +85,53 @@ public final class DenickRegistry {
         }
         for (String name : names) {
             Long addedAt = roster.get(lower(name));
-            if (addedAt != null && now - addedAt <= ROSTER_WINDOW_NS)
+            if (addedAt != null && now - addedAt <= ROSTER_WINDOW_NS) {
                 queue.addLast(new Pending(name, now));
-            else
+                LAST_STAGE.put(lower(name), "removed from team " + team + "; waiting for replacement add");
+            } else {
+                LAST_STAGE.put(lower(name), "removed from team " + team + " without a recent roster entry");
                 debug("Cannot denick after removal: {} was not observed in team {}'s recent roster",
                       name, team);
+            }
         }
     }
 
     private static void match(String team, String nick, long now) {
         ArrayDeque<Pending> queue = REMOVED.get(team);
-        if (queue == null) return;
+        if (queue == null) {
+            LAST_STAGE.put(lower(nick), "replacement add in team " + team + " had no earlier removal");
+            return;
+        }
         while (!queue.isEmpty() && now - queue.peekFirst().time > REPLACEMENT_WINDOW_NS) {
             Pending expired = queue.removeFirst();
+            LAST_STAGE.put(lower(expired.original), "replacement did not arrive in team " + team + " within 1500 ms");
             debug("Denick candidate expired: original={} team={} ageMs={}", expired.original, team,
                   (now - expired.time) / 1_000_000L);
         }
-        if (queue.isEmpty()) return;
+        if (queue.isEmpty()) {
+            LAST_STAGE.put(lower(nick), "replacement add in team " + team + " had no removal within 1500 ms");
+            return;
+        }
         Pending candidate = queue.removeFirst();
         if (candidate.original.equalsIgnoreCase(nick)) return;
         REAL_BY_NICK.put(lower(nick), candidate.original);
+        LAST_STAGE.put(lower(nick), "matched team " + team + " replacement to " + candidate.original);
         if (PikaConfig.debugLogging)
             LOG.info("Denicked {} -> {} from waiting-room team {}", nick, candidate.original, team);
     }
 
     public static synchronized void reportUnresolved(String nick, String reason) {
-        if (PikaConfig.debugLogging && realName(nick) == null)
-            LOG.warn("Could not denick {}: {}. Enable debug before entering the waiting room to capture the roster rewrite.",
-                     nick, reason);
+        if (PikaConfig.denicking && PikaConfig.debugLogging && realName(nick) == null) {
+            String stage = LAST_STAGE.get(lower(nick));
+            if (stage == null)
+                stage = "no team roster event for this name (rosterEvents=" + rosterEvents
+                    + ", removalsIgnoredOutsideWaiting=" + ignoredOutsideWaiting + ")";
+            LOG.warn("Could not denick {}: {}; stage={}", nick, reason, stage);
+        }
     }
 
     public static synchronized String realName(String displayedName) {
+        if (!PikaConfig.denicking) return null;
         return displayedName == null ? null : REAL_BY_NICK.get(lower(displayedName));
     }
 
@@ -115,6 +144,9 @@ public final class DenickRegistry {
         ADDED.clear();
         REMOVED.clear();
         REAL_BY_NICK.clear();
+        LAST_STAGE.clear();
+        rosterEvents = 0;
+        ignoredOutsideWaiting = 0;
     }
 
     private static void debug(String message, Object... args) {

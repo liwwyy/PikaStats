@@ -20,6 +20,7 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.network.FMLNetworkEvent;
+import net.minecraftforge.event.world.WorldEvent;
 
 /** Forge 1.8.9 client entry point for PikaStats. */
 @Mod(modid = PikaStatsMod.MOD_ID, name = PikaStatsMod.MOD_NAME, version = PikaStatsMod.VERSION,
@@ -75,6 +76,19 @@ public final class PikaStatsMod {
     public void onDisconnect(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
         dev.movi.pikastats.denick.DenickRegistry.clear();
         dev.movi.pikastats.tab.MatchOverview.clear();
+        resetOverlays();
+    }
+
+    @SubscribeEvent
+    public void onWorldLoad(WorldEvent.Load event) {
+        if (event.world.isRemote) resetOverlays();
+    }
+
+    private void resetOverlays() {
+        StatsHudRenderer.clear();
+        if (PikaConfig.INSTANCE == null) return;
+        if (PikaConfig.INSTANCE.tabHud != null) PikaConfig.INSTANCE.tabHud.resetVisibility();
+        if (PikaConfig.INSTANCE.statsHud != null) PikaConfig.INSTANCE.statsHud.resetVisibility();
     }
 
     @SubscribeEvent

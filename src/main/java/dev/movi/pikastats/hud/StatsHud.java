@@ -13,6 +13,7 @@ public final class StatsHud extends Hud {
         super(true, 20, 20, 1);
         ignoreCaching = true;
     }
+    public void resetVisibility() { visibility.reset(); }
     @Override
     protected void preRender(boolean example) {
         StatsHudRenderer.refresh();
@@ -32,7 +33,7 @@ public final class StatsHud extends Hud {
     }
     @Override
     protected boolean shouldShow() {
-        if (!isEnabled()) {
+        if (!isEnabled() || !ScoreboardUtil.allowedContext()) {
             visibility.reset();
             return false;
         }

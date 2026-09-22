@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.5.2
+
+- Clear TAB and HUD visibility and cached rows on world changes, and require an active world and player before rendering.
+- Add default-on BedWars scoreboard and denicking switches in General. The BedWars switch requires the sidebar to contain “BedWars,” including when an overlay is set to Always show.
+- Add nametag display modes: stats above the username by default, or beside it in brackets.
+- Default nametag visibility to Always show, with waiting-lobby and in-game switches off; the nametag feature itself remains opt-in.
+- Report the last observed denick stage for unresolved API names, including missing roster evidence, ignored removals, and unmatched team replacements.
+- Request `/party list` after the local player joins a party. Correct the match-overview pill’s text alignment.
+
 ## 1.5.1
 
 - Add default-on loading-skeleton toggles for TAB and HUD. Player names, heads, and ping appear immediately while only pending stat cells shimmer; low performance mode uses static placeholders.

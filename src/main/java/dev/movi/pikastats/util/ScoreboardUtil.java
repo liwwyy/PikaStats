@@ -23,7 +23,7 @@ public final class ScoreboardUtil {
         if (!PikaConfig.isModEnabled() || PikaConfig.INSTANCE.tabHud == null
             || !PikaConfig.INSTANCE.tabHud.isEnabled())
             return false;
-        if (PikaConfig.onlyOnPika && !isPikaNetwork())
+        if (!allowedContext())
             return false;
         if (PikaConfig.tabAlwaysShow)
             return true;
@@ -37,7 +37,7 @@ public final class ScoreboardUtil {
         if (!PikaConfig.isModEnabled() ||
             (PikaConfig.INSTANCE == null || !PikaConfig.INSTANCE.statsHud.isEnabled()))
             return false;
-        if (PikaConfig.onlyOnPika && !isPikaNetwork())
+        if (!allowedContext())
             return false;
         if (PikaConfig.hudAlwaysShow)
             return true;
@@ -53,13 +53,26 @@ public final class ScoreboardUtil {
 
     public static boolean shouldRenderNametags() {
         return PikaConfig.isModEnabled() && PikaConfig.nametagsEnabled &&
-            (!PikaConfig.onlyOnPika || isPikaNetwork()) &&
+            allowedContext() &&
             (PikaConfig.nametagsAlwaysShow || nametagStateAllowed(bedWarsState(), PikaConfig.nametagsShowWaiting,
                                 PikaConfig.nametagsShowInGame));
     }
 
     public static boolean nametagStateAllowed(BedWarsState state, boolean waiting, boolean inGame) {
         return state == BedWarsState.WAITING ? waiting : state == BedWarsState.IN_GAME && inGame;
+    }
+
+    public static boolean allowedContext() {
+        Minecraft mc = Minecraft.getMinecraft();
+        return mc.theWorld != null && mc.thePlayer != null
+            && (!PikaConfig.onlyOnPika || isPikaNetwork())
+            && (!PikaConfig.bedWarsOnly || hasBedWarsScoreboard());
+    }
+
+    public static boolean hasBedWarsScoreboard() {
+        for (String line : visibleSidebarStrings())
+            if (normalize(line).contains("bedwars")) return true;
+        return false;
     }
 
     public static boolean isPikaNetwork() {

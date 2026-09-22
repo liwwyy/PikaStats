@@ -19,6 +19,10 @@ public final class PikaConfig extends Config {
     public static boolean overlayEnabled = true;
     @Switch(name = "Only on PikaNetwork", category = "General", subcategory = "Core")
     public static boolean onlyOnPika = true;
+    @Switch(name = "BedWars only", category = "General", subcategory = "Core")
+    public static boolean bedWarsOnly = true;
+    @Switch(name = "Denicking", category = "General", subcategory = "Core")
+    public static boolean denicking = true;
     @Switch(name = "Low performance mode", category = "General", subcategory = "Performance")
     public static boolean lowPerformanceMode = false;
     @Dropdown(name = "BedWars mode", options = {"Overall", "Solo", "Doubles", "Quads"},
@@ -293,10 +297,13 @@ public final class PikaConfig extends Config {
     public static boolean staticImageSize = false;
     @Switch(name = "Enable nametag stats", category = "Nametags", subcategory = "Stats")
     public static boolean nametagsEnabled = false;
+    @Dropdown(name = "Nametag display mode", options = {"Above username", "With username"},
+              category = "Nametags", subcategory = "Stats")
+    public static int nametagDisplayMode = 0;
     @Switch(name = "Always show", category = "Nametags", subcategory = "Visibility")
-    public static boolean nametagsAlwaysShow = false;
+    public static boolean nametagsAlwaysShow = true;
     @Switch(name = "Show in waiting lobby", category = "Nametags", subcategory = "Visibility")
-    public static boolean nametagsShowWaiting = true;
+    public static boolean nametagsShowWaiting = false;
     @Switch(name = "Show in game", category = "Nametags", subcategory = "Visibility")
     public static boolean nametagsShowInGame = false;
     @Dropdown(
@@ -389,7 +396,7 @@ public final class PikaConfig extends Config {
             if (hudImagePosition == 1)
                 hudImagePosition = 2;
             if (nametagsEnabled && !nametagsShowWaiting && !nametagsShowInGame)
-                nametagsShowWaiting = true;
+                nametagsAlwaysShow = true;
             settingsVersion = 2;
             migrateSettings();
             fontMode = 0;
@@ -428,6 +435,7 @@ public final class PikaConfig extends Config {
         statsPeriod = clamp(statsPeriod, 0, 3);
         tabSortStat = clamp(tabSortStat, 0, 6);
         hudSortStat = clamp(hudSortStat, 0, 6);
+        nametagDisplayMode = clamp(nametagDisplayMode, 0, 1);
         maxPlayersToFetch = clamp(maxPlayersToFetch, 1, 40);
         cacheTtlSeconds = clamp(cacheTtlSeconds, 120, 600);
         pingUpdateIntervalMs = clamp(pingUpdateIntervalMs, 250, 3000);

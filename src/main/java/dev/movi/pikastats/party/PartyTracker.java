@@ -22,6 +22,9 @@ public final class PartyTracker {
                                  LEADING_COUNT = Pattern.compile("^\\(\\d+\\)\\s*");
     private static final Pattern JOIN = Pattern.compile(
         "Party\\s*▏\\s*✚\\s*([A-Za-z0-9_]{3,16})\\s+joined the party!?", Pattern.CASE_INSENSITIVE);
+    private static final Pattern SELF_JOIN = Pattern.compile(
+        "^(?:Party\\s*▏\\s*)?(?:You (?:have )?joined (?:the |[A-Za-z0-9_]{3,16}(?:'s)? )?party|You are now in (?:the |[A-Za-z0-9_]{3,16}(?:'s)? )?party)",
+        Pattern.CASE_INSENSITIVE);
     private static final Pattern LEAVE =
         Pattern.compile("Party\\s*▏\\s*▬\\s*([A-Za-z0-9_]{3,16})\\b", Pattern.CASE_INSENSITIVE);
     private static final Pattern YOUR = Pattern.compile("▏\\s*Your Party\\b", Pattern.CASE_INSENSITIVE),
@@ -77,6 +80,11 @@ public final class PartyTracker {
         lastAt = now;
         if (PartyMessages.isDisband(text)) {
             resetState();
+            return;
+        }
+        if (SELF_JOIN.matcher(text).find()) {
+            enter();
+            pending = 20;
             return;
         }
         Matcher m = JOIN.matcher(text);

@@ -137,9 +137,10 @@ public final class RegressionChecks {
         migrate.invoke(config);
         check(!config.enabled, "An intentionally disabled legacy overlay stays disabled");
         check(!dev.movi.pikastats.config.PikaConfig.nametagsEnabled &&
-                  dev.movi.pikastats.config.PikaConfig.nametagsShowWaiting &&
+                  dev.movi.pikastats.config.PikaConfig.nametagsAlwaysShow &&
+                  !dev.movi.pikastats.config.PikaConfig.nametagsShowWaiting &&
                   !dev.movi.pikastats.config.PikaConfig.nametagsShowInGame,
-              "Nametag master defaults off, with waiting visibility preselected");
+              "Nametag master defaults off, with Always show preselected");
         config.settingsVersion = 1;
         dev.movi.pikastats.config.PikaConfig.tabImagePosition = 1;
         dev.movi.pikastats.config.PikaConfig.hudImagePosition = 1;
@@ -151,8 +152,8 @@ public final class RegressionChecks {
                   dev.movi.pikastats.config.PikaConfig.tabImagePosition == 2 &&
                   dev.movi.pikastats.config.PikaConfig.hudImagePosition == 2,
               "Version 1 right-aligned images stay right-aligned after adding center");
-        check(dev.movi.pikastats.config.PikaConfig.nametagsShowWaiting,
-              "An enabled legacy nametag gets a visible waiting-lobby choice");
+        check(dev.movi.pikastats.config.PikaConfig.nametagsAlwaysShow,
+              "An enabled legacy nametag gets a visible Always show choice");
         dev.movi.pikastats.config.PikaConfig.tabShowLevel = false;
         dev.movi.pikastats.config.PikaConfig.hudShowLevel = true;
         check(TabFormat.hudColumns().size() == TabFormat.tabColumns().size() + 1,

@@ -18,6 +18,7 @@ public final class TabHud extends Hud {
     }
 
     public void setLegacyEnabled(boolean value) { enabled = value; }
+    public void resetVisibility() { visibility.reset(); }
 
     @Override
     protected void preRender(boolean example) {
@@ -42,7 +43,7 @@ public final class TabHud extends Hud {
 
     @Override
     protected boolean shouldShow() {
-        if (!isEnabled()) {
+        if (!isEnabled() || !ScoreboardUtil.allowedContext()) {
             visibility.reset();
             return false;
         }

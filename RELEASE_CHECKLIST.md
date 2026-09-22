@@ -7,6 +7,10 @@
 - [ ] Check `/pikastats`, O, `/stats`, community buttons and all settings categories. Confirm Position is the first inline TAB/HUD section and contains editor and reset controls without opening a submenu.
 - [ ] Enter OneConfig's HUD editor outside BedWars; drag and resize the dummy table, close, restart and verify its anchor/scale.
 - [ ] Check no-player lists, disconnect/reconnect, waiting lobby and in-game visibility.
+- [ ] Join a singleplayer world and Pika lobby before entering BedWars; verify TAB and HUD clear immediately. Toggle BedWars only and confirm it requires “BedWars” in the sidebar even with Always show enabled.
+- [ ] Toggle Denicking off and on; verify mapped names are used only while enabled. With debug on, check unresolved nick logs name the last observed team packet stage.
+- [ ] Join a party yourself and verify `/party list` is requested without waiting for another member to join.
+- [ ] Compare Above username and With username nametags, including sneaking and team-colored names. Check match-overview text is vertically centered.
 - [ ] In a waiting room with nicked players, verify a same-team remove/add rewrite displays `Nick OriginalName`, styles the original grey italic, fetches the original account's stats, retains the mapping in-game, and never pairs ordinary joins/quits.
 - [ ] Enable General → Advanced → Debug logging before entering a waiting room; verify successful mappings and unresolved nicks include useful team/reason details without errors when disabled.
 - [ ] Hold/release TAB repeatedly with the duplicate HUD enabled; confirm vanilla TAB and VanillaHUD's empty background stay hidden, while VanillaHUD works normally when PikaStats TAB is disabled.
@@ -18,7 +22,7 @@
 - [ ] Check Minecraft, resource-pack and custom TTF fonts, colored names, Unicode and grey italic spectator names.
 - [ ] Put separate PNGs in `backgrounds/` and a TTF in `fonts/`; check manual and random local backgrounds, independent TAB/HUD selections, transparency, opacity, alignment and size. Turn on Keep image size, change player counts, and confirm image scale stays fixed until reload. Check legacy locations, missing/corrupt files and oversized images.
 - [ ] Enable Catbox, request new waifu images separately for TAB and HUD, exit Minecraft, and confirm `catbox-cache` no longer holds downloaded images. Check the image size limit.
-- [ ] Check nametag master default off, waiting visibility preselected, waiting-only/game-only/both visibility and no labels outside BedWars; check stat modes, white brackets, distance, invisible/sneaking players and nametag-mod compatibility.
+- [ ] Check nametag master default off, Always show preselected, waiting/in-game switches off, and no labels outside BedWars while BedWars only is enabled. Check stat modes, unbracketed Above username and white brackets in With username, distance, invisible/sneaking players and nametag-mod compatibility.
 - [ ] Check zero stats, NO STATS, API DISABLED, unresolved NICKED, network failures, party highlight, grey FK/Wins/Beds values, and verify stat sorting does not affect the main BedWars lobby.
 - [x] Confirm author names, 128-pixel icon, version and release jar contents.
 - [ ] Publish only after the client checks above pass.

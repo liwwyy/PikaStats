@@ -17,6 +17,15 @@ final class HudMotion {
     private final Map<String, Float> moveFrom = new HashMap<String, Float>();
     private final Map<String, Long> movedAt = new HashMap<String, Long>();
 
+    void reset() {
+        initialized = false;
+        joinedAt.clear();
+        leftAt.clear();
+        rowIndex.clear();
+        moveFrom.clear();
+        movedAt.clear();
+    }
+
     void update(float width, float height, List<String> names, long now, int durationMs,
                 int exitDurationMs) {
         if (!initialized) {

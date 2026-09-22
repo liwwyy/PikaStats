@@ -51,6 +51,12 @@ public final class StatsHudRenderer {
     private static volatile Snapshot cachedHud, cachedTab;
     private static final HudMotion HUD_MOTION = new HudMotion(), TAB_MOTION = new HudMotion();
 
+    public static void clear() {
+        cachedHud = cachedTab = null;
+        HUD_MOTION.reset();
+        TAB_MOTION.reset();
+    }
+
     public static void refresh() { refresh(false); refresh(true); }
     public static void refresh(boolean tab) {
         Snapshot next = snapshot(false, tab);
@@ -237,7 +243,7 @@ public final class StatsHudRenderer {
                 RenderUtil.roundedRect(pillX, pillY, pillX + pillW, pillY + PILL_H, 7,
                     RenderUtil.withAlpha(0x101217,
                         tab ? PikaConfig.tabBackgroundOpacity : PikaConfig.hudBackgroundOpacity));
-                center(f, s.overview, Math.round(bx + panelW / 2f), Math.round(pillY),
+                center(f, s.overview, Math.round(bx + panelW / 2f), Math.round(pillY) + 1,
                        Math.round(pillW), PILL_H);
             }
             int y = Math.round(by);
