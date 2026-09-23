@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.5.3
+
+- Place above-username stats above Pika's below-name hearts and the raised username, using Minecraft's font spacing and score visibility.
+- Center match-overview text from the pill's bounds and active font height without a fixed downward offset.
+- Observe team packets on the client thread only, eliminating duplicate denick events and logs. Explain unpaired team adds outside waiting rooms, including nearby removals from different teams.
+- Keep match-overview header/footer capture on the network thread; Minecraft 1.8.9 does not replay those packets on the client thread.
+
 ## 1.5.2
 
 - Clear TAB and HUD visibility and cached rows on world changes, and require an active world and player before rendering.

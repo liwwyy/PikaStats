@@ -10,7 +10,7 @@
 - [ ] Join a singleplayer world and Pika lobby before entering BedWars; verify TAB and HUD clear immediately. Toggle BedWars only and confirm it requires “BedWars” in the sidebar even with Always show enabled.
 - [ ] Toggle Denicking off and on; verify mapped names are used only while enabled. With debug on, check unresolved nick logs name the last observed team packet stage.
 - [ ] Join a party yourself and verify `/party list` is requested without waiting for another member to join.
-- [ ] Compare Above username and With username nametags, including sneaking and team-colored names. Check match-overview text is vertically centered.
+- [ ] Compare Above username and With username nametags, including Pika's below-name hearts, sneaking and team-colored names. Check match-overview text is vertically centered with Minecraft, Poppins and custom fonts.
 - [ ] In a waiting room with nicked players, verify a same-team remove/add rewrite displays `Nick OriginalName`, styles the original grey italic, fetches the original account's stats, retains the mapping in-game, and never pairs ordinary joins/quits.
 - [ ] Enable General → Advanced → Debug logging before entering a waiting room; verify successful mappings and unresolved nicks include useful team/reason details without errors when disabled.
 - [ ] Hold/release TAB repeatedly with the duplicate HUD enabled; confirm vanilla TAB and VanillaHUD's empty background stay hidden, while VanillaHUD works normally when PikaStats TAB is disabled.

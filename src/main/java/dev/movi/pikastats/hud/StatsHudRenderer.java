@@ -243,8 +243,9 @@ public final class StatsHudRenderer {
                 RenderUtil.roundedRect(pillX, pillY, pillX + pillW, pillY + PILL_H, 7,
                     RenderUtil.withAlpha(0x101217,
                         tab ? PikaConfig.tabBackgroundOpacity : PikaConfig.hudBackgroundOpacity));
-                center(f, s.overview, Math.round(bx + panelW / 2f), Math.round(pillY) + 1,
-                       Math.round(pillW), PILL_H);
+                float textRoom = Math.min(pillW - 8f, textW);
+                f.drawCenteredFitted(s.overview, pillX + (pillW - textRoom) / 2f,
+                                     pillY, textRoom, PILL_H);
             }
             int y = Math.round(by);
             if (tab ? PikaConfig.tabShowHeader : PikaConfig.hudShowHeader) {

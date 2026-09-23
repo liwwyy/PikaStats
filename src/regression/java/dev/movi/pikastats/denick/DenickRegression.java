@@ -31,6 +31,10 @@ public final class DenickRegression {
                                start + 30_000_000L);
         DenickRegistry.observe(3, "waiting", Arrays.asList("AnotherNick"), false,
                                start + 31_000_000L);
-        return DenickRegistry.realName("AnotherNick") == null;
+        if (DenickRegistry.realName("AnotherNick") != null) return false;
+        DenickRegistry.observe(3, "different-team", Arrays.asList("notPink_York_"), false,
+                               start + 32_000_000L);
+        return DenickRegistry.realName("notPink_York_") == null
+            && DenickRegistry.diagnosticStage("notPink_York_").contains("different team; cannot pair");
     }
 }

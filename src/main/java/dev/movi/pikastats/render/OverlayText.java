@@ -120,12 +120,22 @@ public final class OverlayText {
     /** Center one formatted line inside a cell, shrinking only when needed. */
     public void drawFitted(String value, float left, float top, float width, float height,
                            boolean right) {
+        drawFitted(value, left, top, width, height, right, .5f);
+    }
+
+    /** Center painted text in a standalone box without the cell baseline offset. */
+    public void drawCenteredFitted(String value, float left, float top, float width, float height) {
+        drawFitted(value, left, top, width, height, false, 0f);
+    }
+
+    private void drawFitted(String value, float left, float top, float width, float height,
+                            boolean right, float baselineOffset) {
         if (value == null || value.isEmpty() || width <= 0 || height <= 0) return;
         float textWidth = Math.max(1, getStringWidth(value));
         float textHeight = Math.max(1, lineHeight());
         float fit = Math.min(1f, Math.min(width / textWidth, height / textHeight));
         float x = right ? left + width - textWidth * fit : left;
-        float y = top + (height - textHeight * fit) / 2f + .5f;
+        float y = top + (height - textHeight * fit) / 2f + baselineOffset;
         if (fit >= .999f) {
             drawStringWithShadow(value, x, y, 0xFFFFFFFF);
             return;

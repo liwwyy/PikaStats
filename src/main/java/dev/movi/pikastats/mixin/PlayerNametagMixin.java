@@ -5,6 +5,7 @@ import dev.movi.pikastats.config.PikaConfig;
 import dev.movi.pikastats.model.PlayerStats;
 import dev.movi.pikastats.tab.TabFormat;
 import dev.movi.pikastats.util.ScoreboardUtil;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.RendererLivingEntity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -52,6 +53,19 @@ public abstract class PlayerNametagMixin {
         String value = TabFormat.status(stats);
         if (value == null) value = stats.nametagValue(PikaConfig.nametagStat);
         ((RenderLabelInvoker) this).pikastats$renderLivingLabel(entity, "§f" + value,
-            x, y + 0.25D, z, entity.isSneaking() ? 32 : 64);
+            x, y + pikastats$statHeight(entity), z, entity.isSneaking() ? 32 : 64);
+    }
+
+    private static double pikastats$statHeight(EntityLivingBase entity) {
+        Minecraft mc = Minecraft.getMinecraft();
+        // RenderPlayer draws the below-name objective at the original height,
+        // then moves the username up by one font line. Reserve a second line
+        // above it whenever that objective is visible at vanilla's 10-block range.
+        boolean belowName = !entity.isSneaking() && mc.theWorld != null
+            && mc.theWorld.getScoreboard().getObjectiveInDisplaySlot(2) != null
+            && mc.getRenderManager().livingPlayer != null
+            && entity.getDistanceSqToEntity(mc.getRenderManager().livingPlayer) < 100D;
+        int lines = belowName ? 2 : 1;
+        return mc.fontRendererObj.FONT_HEIGHT * 1.15D * 0.02666667D * lines;
     }
 }

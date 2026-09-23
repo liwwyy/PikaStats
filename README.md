@@ -30,7 +30,7 @@ Only the release jar and OneConfig are needed. The release contains Poppins and 
 - **Denicking:** on by default; turn off original-name detection and substitution independently of the tables.
 - **BedWars mode:** choose Overall, Solo, Doubles, or Quads. **Stats period:** Lifetime, Weekly, Monthly, or Yearly.
 - **Max API players, cache TTL, and ping refresh:** control request volume, how long results remain cached, and ping update frequency.
-- **Debug logging:** records denick mappings and the last observed roster, removal, or replacement stage for unresolved names in the game console. Enable it before entering a waiting room when diagnosing a player.
+- **Debug logging:** records denick mappings and the last observed roster, removal, or replacement stage for unresolved names in the game console. Outside waiting rooms, unpaired team adds include any nearby removal and its team so the missing evidence is clear. Enable it before entering a waiting room when diagnosing a player.
 - **Highlight party members / Party members first:** mark party members and move them ahead of other waiting-lobby players.
 - **Font:** Minecraft, bundled Poppins, or Custom TTF. For Custom TTF, place a `.ttf` in `.minecraft/config/pikastats/fonts/` and enter its exact filename. Files in the old `config/pikastats/` location still work. A missing or invalid font falls back to Minecraft's font.
 - **Low performance mode:** skips animation, glass effects, custom images, player heads, and custom fonts while keeping the table readable.
@@ -72,7 +72,7 @@ Only the release jar and OneConfig are needed. The release contains Poppins and 
 
 - **Enable nametag stats:** off by default. Choose FKDR, level, WLR, highest winstreak, final kills, wins, or beds for player names.
 - **Always show / Show in waiting lobby / Show in game:** Always show is on by default; the two state switches are off. Once nametag stats are enabled, Always show bypasses the waiting/in-game state check. The master switch, **Only on PikaNetwork**, and **BedWars only** still apply.
-- **Nametag display mode:** Above username is the default and shows an unbracketed statistic on its own line. With username shows `Name [value]`. Vanilla visibility, distance, and sneaking rules remain in charge.
+- **Nametag display mode:** Above username is the default and shows an unbracketed statistic on its own line, above both the username and any below-name score such as hearts. With username shows `Name [value]`. Vanilla visibility, distance, and sneaking rules remain in charge.
 
 </details>
 

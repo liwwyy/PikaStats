@@ -25,6 +25,8 @@ public final class DenickRegistry {
     private static final Map<String, String> LAST_STAGE = new HashMap<String, String>();
     private static int ignoredOutsideWaiting;
     private static int rosterEvents;
+    private static String recentOutsideRemovalTeam, recentOutsideRemovalName;
+    private static long recentOutsideRemovalAt;
 
     private static final class Pending {
         final String original;
@@ -65,7 +67,17 @@ public final class DenickRegistry {
                 match(team, names.get(0), now);
             for (String name : names) {
                 roster.put(lower(name), now);
-                if (action == 0 || !LAST_STAGE.containsKey(lower(name)))
+                if (action == 3 && !waiting) {
+                    String stage = "team add outside waiting room: team=" + team
+                        + "; no confirmed original-name replacement";
+                    if (recentOutsideRemovalTeam != null
+                        && now - recentOutsideRemovalAt <= REPLACEMENT_WINDOW_NS)
+                        stage += "; nearby removal=" + recentOutsideRemovalName + " from team "
+                            + recentOutsideRemovalTeam
+                            + (team.equals(recentOutsideRemovalTeam) ? " (same team, but outside waiting)"
+                                : " (different team; cannot pair)");
+                    LAST_STAGE.put(lower(name), stage);
+                } else if (action == 0 || !LAST_STAGE.containsKey(lower(name)))
                     LAST_STAGE.put(lower(name), "seen in team " + team + " roster (action " + action + ", waiting=" + waiting + ")");
             }
             return;
@@ -73,8 +85,12 @@ public final class DenickRegistry {
 
         if (!waiting) {
             ignoredOutsideWaiting++;
-            for (String name : names)
+            for (String name : names) {
                 LAST_STAGE.put(lower(name), "team " + team + " removal ignored because BedWars waiting state was not detected");
+                recentOutsideRemovalTeam = team;
+                recentOutsideRemovalName = name;
+                recentOutsideRemovalAt = now;
+            }
             debug("Ignored removal outside a BedWars waiting room: team={} players={}", team, names);
             return;
         }
@@ -122,12 +138,16 @@ public final class DenickRegistry {
 
     public static synchronized void reportUnresolved(String nick, String reason) {
         if (PikaConfig.denicking && PikaConfig.debugLogging && realName(nick) == null) {
-            String stage = LAST_STAGE.get(lower(nick));
-            if (stage == null)
-                stage = "no team roster event for this name (rosterEvents=" + rosterEvents
-                    + ", removalsIgnoredOutsideWaiting=" + ignoredOutsideWaiting + ")";
-            LOG.warn("Could not denick {}: {}; stage={}", nick, reason, stage);
+            LOG.warn("Could not denick {}: {}; stage={}", nick, reason, diagnosticStage(nick));
         }
+    }
+
+    static synchronized String diagnosticStage(String nick) {
+        String stage = nick == null ? null : LAST_STAGE.get(lower(nick));
+        return stage == null
+            ? "no team roster event for this name (rosterEvents=" + rosterEvents
+                + ", removalsIgnoredOutsideWaiting=" + ignoredOutsideWaiting + ")"
+            : stage;
     }
 
     public static synchronized String realName(String displayedName) {
@@ -147,6 +167,8 @@ public final class DenickRegistry {
         LAST_STAGE.clear();
         rosterEvents = 0;
         ignoredOutsideWaiting = 0;
+        recentOutsideRemovalTeam = recentOutsideRemovalName = null;
+        recentOutsideRemovalAt = 0L;
     }
 
     private static void debug(String message, Object... args) {
