@@ -3,6 +3,8 @@ package dev.movi.pikastats;
 import dev.movi.pikastats.model.PlayerStats;
 import dev.movi.pikastats.render.RenderUtil;
 import dev.movi.pikastats.tab.TabFormat;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonObject;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -21,6 +23,15 @@ public final class RegressionChecks {
             throw new AssertionError(message);
     }
     public static void main(String[] args) throws Exception {
+        check(!dev.movi.pikastats.config.PikaConfig.tabShowFinalKills
+                  && !dev.movi.pikastats.config.PikaConfig.tabShowWins
+                  && !dev.movi.pikastats.config.PikaConfig.hudShowFinalKills
+                  && !dev.movi.pikastats.config.PikaConfig.hudShowWins,
+              "Final kills and wins are optional columns in both default tables");
+        check(dev.movi.pikastats.config.PikaConfig.tabAlwaysShow
+                  && dev.movi.pikastats.config.PikaConfig.tabShowHp
+                  && dev.movi.pikastats.config.PikaConfig.nametagsEnabled,
+              "TAB visibility, HP, and nametag status start enabled");
         PlayerStats empty = new PlayerStats("Player");
         empty.noStats = true;
         check("§7NO STATS".equals(TabFormat.status(empty)),
@@ -51,6 +62,44 @@ public final class RegressionChecks {
         previous.wins = 42;
         previous.finalKills = 100;
         Class<?> manager = Class.forName("dev.movi.pikastats.api.StatsManager");
+        Method parseProfile = manager.getDeclaredMethod("parseProfile", JsonObject.class,
+            PlayerStats.class, String.class);
+        parseProfile.setAccessible(true);
+        PlayerStats social = new PlayerStats("movi6287");
+        JsonObject profile = new JsonParser().parse("{\"username\":\"movi6287\","
+            + "\"clan\":{\"name\":\"Omori\",\"tag\":\"star\"},"
+            + "\"ranks\":[{\"displayName\":\"VIP\",\"server\":\"games\",\"expiry\":-1}],"
+            + "\"friends\":[{\"username\":\"Liywy\"},{\"username\":\"bad name\"}]}")
+            .getAsJsonObject();
+        parseProfile.invoke(null, profile, social, "movi6287");
+        check("Omori".equals(social.guild) && social.friends.contains("liywy")
+                  && !social.friends.contains("bad name"),
+              "Live profile clan names and friend usernames parse safely");
+        check("Omori".equals(social.copy().guild) && social.copy().friends.contains("liywy"),
+              "Profile social data survives cached copies");
+        check("§aVIP".equals(social.rank) && "§aVIP".equals(TabFormat.combinedSecondary(null, social))
+                  && TabFormat.combinedSecondary(null, empty).isEmpty(),
+              "Combined ranks keep their color and unranked names have no dash");
+        PlayerStats elite = new PlayerStats("Player");
+        JsonObject eliteProfile = new JsonParser().parse("{\"username\":\"Player\","
+            + "\"ranks\":[{\"displayName\":\"Elite\",\"server\":\"games\",\"expiry\":-1}]}")
+            .getAsJsonObject();
+        parseProfile.invoke(null, eliteProfile, elite, "Player");
+        check("§bElite".equals(elite.rank), "Elite rank uses the cyan tab-list color");
+        Method rankPrefix = TabFormat.class.getDeclaredMethod("rankColorInPrefix",
+            String.class, String.class, String.class);
+        rankPrefix.setAccessible(true);
+        check(rankPrefix.invoke(null, "§8[§bElite§8] §7Player", "Player", "Elite")
+                  == net.minecraft.util.EnumChatFormatting.AQUA
+                  && rankPrefix.invoke(null, "§8[§9Elite§8] §7Player", "Player", "Elite")
+                      == net.minecraft.util.EnumChatFormatting.BLUE,
+              "Rank text follows the actual server prefix color when available");
+        check(PlayerStats.levelColor(0) == net.minecraft.util.EnumChatFormatting.GRAY
+                  && PlayerStats.levelColor(9) == net.minecraft.util.EnumChatFormatting.GRAY
+                  && PlayerStats.levelColor(10) == net.minecraft.util.EnumChatFormatting.WHITE
+                  && PlayerStats.levelColor(90) == net.minecraft.util.EnumChatFormatting.RED
+                  && PlayerStats.levelColor(100) == net.minecraft.util.EnumChatFormatting.DARK_RED,
+              "Level text progresses through ten-level color bands up to 100");
         Method merge = manager.getDeclaredMethod("merge", PlayerStats.class, PlayerStats.class);
         merge.setAccessible(true);
         PlayerStats merged = (PlayerStats)merge.invoke(null, empty, previous);
@@ -136,11 +185,11 @@ public final class RegressionChecks {
         dev.movi.pikastats.config.PikaConfig.overlayEnabled = false;
         migrate.invoke(config);
         check(!config.enabled, "An intentionally disabled legacy overlay stays disabled");
-        check(!dev.movi.pikastats.config.PikaConfig.nametagsEnabled &&
+        check(dev.movi.pikastats.config.PikaConfig.nametagsEnabled &&
                   dev.movi.pikastats.config.PikaConfig.nametagsAlwaysShow &&
                   !dev.movi.pikastats.config.PikaConfig.nametagsShowWaiting &&
                   !dev.movi.pikastats.config.PikaConfig.nametagsShowInGame,
-              "Nametag master defaults off, with Always show preselected");
+              "Nametag status defaults on, with Always show preselected");
         config.settingsVersion = 1;
         dev.movi.pikastats.config.PikaConfig.tabImagePosition = 1;
         dev.movi.pikastats.config.PikaConfig.hudImagePosition = 1;
@@ -148,7 +197,7 @@ public final class RegressionChecks {
         dev.movi.pikastats.config.PikaConfig.nametagsShowWaiting = false;
         dev.movi.pikastats.config.PikaConfig.nametagsShowInGame = false;
         migrate.invoke(config);
-        check(config.settingsVersion == 5 &&
+        check(config.settingsVersion == 8 &&
                   dev.movi.pikastats.config.PikaConfig.tabImagePosition == 2 &&
                   dev.movi.pikastats.config.PikaConfig.hudImagePosition == 2,
               "Version 1 right-aligned images stay right-aligned after adding center");
@@ -162,22 +211,38 @@ public final class RegressionChecks {
         dev.movi.pikastats.config.PikaConfig.fontMode = 1;
         dev.movi.pikastats.config.PikaConfig.customFont = "custom.tff";
         migrate.invoke(config);
-        check(config.settingsVersion == 5 && dev.movi.pikastats.config.PikaConfig.fontMode == 2
+        check(config.settingsVersion == 8 && dev.movi.pikastats.config.PikaConfig.fontMode == 2
                   && "custom.ttf".equals(dev.movi.pikastats.config.PikaConfig.customFont),
               "Old custom font selection and common extension typo migrate safely");
         config.settingsVersion = 3;
         dev.movi.pikastats.config.PikaConfig.fontMode = 1;
         migrate.invoke(config);
-        check(config.settingsVersion == 5 && dev.movi.pikastats.config.PikaConfig.fontMode == 0,
+        check(config.settingsVersion == 8 && dev.movi.pikastats.config.PikaConfig.fontMode == 0,
               "Previous default Poppins profile moves to Minecraft font");
         config.settingsVersion = 4;
         dev.movi.pikastats.config.PikaConfig.tabAnimationDuration = 180;
         dev.movi.pikastats.config.PikaConfig.hudAnimationDuration = 180;
         migrate.invoke(config);
-        check(config.settingsVersion == 5 &&
+        check(config.settingsVersion == 8 &&
                   dev.movi.pikastats.config.PikaConfig.tabAnimationDuration == 120 &&
                   dev.movi.pikastats.config.PikaConfig.hudAnimationDuration == 120,
               "Existing default popup animations become faster for both tables");
+        config.settingsVersion = 6;
+        dev.movi.pikastats.config.PikaConfig.tabColumnOrder =
+            "LV,RANK,NAME,FKDR,WLR,HWS,FK,WINS,BEDS,GUILD,HP,PING";
+        dev.movi.pikastats.config.PikaConfig.tabShowFinalKills = true;
+        dev.movi.pikastats.config.PikaConfig.tabShowWins = true;
+        dev.movi.pikastats.config.PikaConfig.tabShowPing = true;
+        dev.movi.pikastats.config.PikaConfig.tabShowHp = true;
+        migrate.invoke(config);
+        check(config.settingsVersion == 8 &&
+                  "NAME,FKDR,LV,WLR,HWS,FK,WINS,BEDS,GUILD,HP,PING"
+                      .equals(dev.movi.pikastats.config.PikaConfig.tabColumnOrder) &&
+                  !dev.movi.pikastats.config.PikaConfig.tabShowFinalKills &&
+                  !dev.movi.pikastats.config.PikaConfig.tabShowWins &&
+                  !dev.movi.pikastats.config.PikaConfig.tabShowPing &&
+                  dev.movi.pikastats.config.PikaConfig.tabShowHp,
+              "Existing default TAB layout migrates to the requested fields with HP enabled");
         dev.movi.pikastats.tab.TabFormat.Column nameColumn =
             TabFormat.tabColumns().stream().filter(c -> c.id.equals("name")).findFirst().get();
         check(TabFormat.demo(nameColumn, 0).contains("liywy") &&
@@ -191,6 +256,10 @@ public final class RegressionChecks {
               "Shutdown clears only downloaded Catbox images and its selection marker");
         check(dev.movi.pikastats.denick.DenickRegression.run(),
               "Waiting-room team rewrites denick players without pairing unrelated packets");
+        check(dev.movi.pikastats.party.PartyRegression.run(),
+              "Party joins and leaves recognize ranked Pika message variants");
+        check(dev.movi.pikastats.party.OtherPartyRegression.run(),
+              "Separate join-time parties get distinct colors and solo joins stay uncolored");
         check(dev.movi.pikastats.tab.MatchOverviewRegression.run(),
               "Pika player-list match counters parse into the overview pill");
         backgrounds.getMethod("shutdown").invoke(null);

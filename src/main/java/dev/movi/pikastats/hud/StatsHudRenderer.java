@@ -22,8 +22,10 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.world.WorldSettings;
 
 public final class StatsHudRenderer {
-    private static final int ROW_H = 12, HEADER_H = 14, TITLE_H = 14, CELL_PAD = 4, HEAD_SLOT = 10,
-                             OUTER = 5, COMBINED_GAP = 7, PILL_H = 14, PILL_GAP = 4;
+    private static final int ROW_H = 12, HEADER_H = 14, TITLE_H = 14, HEAD_SLOT = 10,
+                             OUTER = 5, PILL_H = 14, PILL_GAP = 4;
+    private static int cellPad() { return PikaConfig.columnSpacing == 1 ? 2 : 4; }
+    private static int combinedGap() { return PikaConfig.columnSpacing == 1 ? 4 : 7; }
     private StatsHudRenderer() {}
     private static final class Snapshot {
         final List<TabFormat.Column> cols;
@@ -148,7 +150,7 @@ public final class StatsHudRenderer {
         OverlayText f = OverlayText.get();
         int[] widths = new int[cols.size()];
         for (int i = 0; i < cols.size(); i++)
-            widths[i] = f.getStringWidth(TabFormat.header(cols.get(i)));
+            widths[i] = cols.get(i).id.equals("hp") ? 9 : f.getStringWidth(TabFormat.header(cols.get(i)));
         int statusNeed = 0;
         int[] span = TabFormat.statusSpan(cols);
         if (demo) {
@@ -161,15 +163,17 @@ public final class StatsHudRenderer {
                 PlayerStats st = StatsManager.peek(PlayerListUtil.profileName(info));
                 String status = TabFormat.status(st);
                 if (status != null)
-                    statusNeed = Math.max(statusNeed, f.getStringWidth(status) + CELL_PAD * 2);
+                    statusNeed = Math.max(statusNeed, f.getStringWidth(status) + cellPad() * 2);
                 for (int i = 0; i < cols.size(); i++) {
                     if (status != null && span != null && i >= span[0] && i <= span[1])
                         continue;
-                    int m = cols.get(i).id.equals("name") &&
-                            (tab ? PikaConfig.combineRankWithName : PikaConfig.hudCombineRankWithName)
-                                ? f.getStringWidth(TabFormat.name(info)) + COMBINED_GAP +
-                                      f.getStringWidth(TabFormat.combinedSecondary(info, st))
-                                : f.getStringWidth(TabFormat.cell(cols.get(i), info, st));
+                    int m;
+                    if (cols.get(i).id.equals("name") &&
+                        (tab ? PikaConfig.combineRankWithName : PikaConfig.hudCombineRankWithName)) {
+                        String secondary = TabFormat.combinedSecondary(info, st);
+                        m = f.getStringWidth(TabFormat.name(info)) +
+                            (secondary.isEmpty() ? 0 : combinedGap() + f.getStringWidth(secondary));
+                    } else m = f.getStringWidth(TabFormat.cell(cols.get(i), info, st));
                     widths[i] = Math.max(widths[i], m);
                 }
             }
@@ -179,8 +183,8 @@ public final class StatsHudRenderer {
                     widths[i] = Math.max(widths[i], f.getStringWidth("No players"));
         }
         for (int i = 0; i < widths.length; i++)
-            widths[i] = Math.min(widths[i] + CELL_PAD * 2,
-                                 cols.get(i).id.equals("name") ? 136 : 78);
+            widths[i] = Math.min(widths[i] + cellPad() * 2,
+                                 cols.get(i).id.equals("name") ? 122 : 64);
         if (span != null && statusNeed > 0) {
             int cur = 0;
             for (int i = span[0]; i <= span[1]; i++)
@@ -255,8 +259,11 @@ public final class StatsHudRenderer {
                 y += TITLE_H;
                 int x = Math.round(bx) + s.head;
                 for (int i = 0; i < s.cols.size(); i++) {
-                    cell(f, TabFormat.header(s.cols.get(i)), x, y, s.widths[i], HEADER_H,
-                         s.cols.get(i).right);
+                    if (s.cols.get(i).id.equals("hp"))
+                        heartIcon(x + (s.widths[i] - 9) / 2, y + (HEADER_H - 9) / 2);
+                    else
+                        cell(f, TabFormat.header(s.cols.get(i)), x, y, s.widths[i], HEADER_H,
+                             s.cols.get(i).right);
                     x += s.widths[i];
                 }
                 if (tab ? PikaConfig.tabColumnDividers : PikaConfig.hudColumnDividers)
@@ -348,13 +355,13 @@ public final class StatsHudRenderer {
             TabFormat.Column column = s.cols.get(i);
             if (column.id.equals("name"))
                 cell(f, TabFormat.name(info), x, rowY, s.widths[i], ROW_H, false);
-            else if (column.id.equals("ping"))
+            else if (column.id.equals("ping") || column.id.equals("hp"))
                 cell(f, TabFormat.cell(column, info, null), x, rowY, s.widths[i], ROW_H, true);
             else {
-                int width = Math.max(3, s.widths[i] - CELL_PAD * 2);
+                int width = Math.max(3, s.widths[i] - cellPad() * 2);
                 int fill = Math.max(3, Math.round(width * (i % 3 == 0 ? .62f : i % 3 == 1 ? .78f : .48f)));
-                RenderUtil.roundedRect(x + CELL_PAD, rowY + 4,
-                                       x + CELL_PAD + fill, rowY + 8, 2, color);
+                RenderUtil.roundedRect(x + cellPad(), rowY + 4,
+                                       x + cellPad() + fill, rowY + 8, 2, color);
             }
             x += s.widths[i];
         }
@@ -380,14 +387,18 @@ public final class StatsHudRenderer {
         }
     }
     private static void cell(OverlayText f, String s, int x, int y, int w, int h, boolean right) {
-        f.drawFitted(s, x + CELL_PAD, y, Math.max(1, w - CELL_PAD * 2), h, right);
+        f.drawFitted(s, x + cellPad(), y, Math.max(1, w - cellPad() * 2), h, right);
     }
     private static void combined(OverlayText f, String name, String rank, int x, int y, int w) {
-        int room = Math.max(2, w - CELL_PAD * 2 - COMBINED_GAP);
+        if (rank == null || rank.isEmpty()) {
+            cell(f, name, x, y, w, ROW_H, false);
+            return;
+        }
+        int room = Math.max(2, w - cellPad() * 2 - combinedGap());
         int rankRoom = Math.min(room / 2, f.getStringWidth(rank));
         int nameRoom = room - rankRoom;
-        f.drawFitted(name, x + CELL_PAD, y, nameRoom, ROW_H, false);
-        f.drawFitted(rank, x + w - CELL_PAD - rankRoom, y, rankRoom, ROW_H, true);
+        f.drawFitted(name, x + cellPad(), y, nameRoom, ROW_H, false);
+        f.drawFitted(rank, x + w - cellPad() - rankRoom, y, rankRoom, ROW_H, true);
     }
     private static void center(OverlayText f, String s, int cx, int y, int width, int height) {
         int textWidth = f.getStringWidth(s);
@@ -397,12 +408,17 @@ public final class StatsHudRenderer {
     private static void dividers(int bx, int t, int b, int head, int[] ws, int[] span) {
         int x = bx + head;
         if (head > 0 && ws.length > 0)
-            RenderUtil.rect(x, t, x + 1, b, 0x33FFFFFF);
+            RenderUtil.rect(x, t, x + 1, b, 0x55FFFFFF);
         for (int i = 0; i < ws.length - 1; i++) {
             x += ws[i];
             if (span == null || i < span[0] || i >= span[1])
-                RenderUtil.rect(x, t, x + 1, b, 0x33FFFFFF);
+                RenderUtil.rect(x, t, x + 1, b, 0x55FFFFFF);
         }
+    }
+    private static void heartIcon(int x, int y) {
+        Minecraft.getMinecraft().getTextureManager().bindTexture(Gui.icons);
+        GlStateManager.color(1f, 1f, 1f, 1f);
+        Gui.drawModalRectWithCustomSizedTexture(x, y, 52, 0, 9, 9, 256, 256);
     }
     private static void head(NetworkPlayerInfo info, int x, int y) {
         try {

@@ -1,18 +1,23 @@
 # Release checklist
 
 - [x] Run `./gradlew :1.8.9-forge:clean :1.8.9-forge:build --warning-mode fail` on JDK 21 with JDK 8 available.
-- [x] Run the offscreen render-state smoke check: 500 frames with no GL errors; compile/link glass shaders on the driver.
+- [ ] Rerun the offscreen render-state smoke check for 1.6.0; the prior 500-frame result belongs to 1.5.3.
 - [ ] Upgrade an existing profile with conflicting master switches; verify the HUD and OneConfig editor appear, then verify one master switch controls all features after restart.
 - [ ] Drag the release jar (not dev/sources) into Forge 1.8.9 on Java 8 without a separate OneConfig jar; verify the loader installs OneConfig.
-- [ ] Check `/pikastats`, O, `/stats`, community buttons and all settings categories. Confirm Position is the first inline TAB/HUD section and contains editor and reset controls without opening a submenu.
+- [ ] Check `/pikastats`, O, `/stats`, community buttons and all settings categories. Confirm General, TAB, HUD, and Nametags appear first, and each Position submenu contains editor and reset controls.
 - [ ] Enter OneConfig's HUD editor outside BedWars; drag and resize the dummy table, close, restart and verify its anchor/scale.
 - [ ] Check no-player lists, disconnect/reconnect, waiting lobby and in-game visibility.
 - [ ] Join a singleplayer world and Pika lobby before entering BedWars; verify TAB and HUD clear immediately. Toggle BedWars only and confirm it requires “BedWars” in the sidebar even with Always show enabled.
-- [ ] Toggle Denicking off and on; verify mapped names are used only while enabled. With debug on, check unresolved nick logs name the last observed team packet stage.
+- [ ] Confirm Denicking and real-name display default off, and the full red warning appears at the top of Denick settings. Toggle detection off and on; verify mapped names are used only while enabled. With debug on, check unresolved nick logs name the last observed team packet stage.
 - [ ] Join a party yourself and verify `/party list` is requested without waiting for another member to join.
+- [ ] In a waiting lobby, verify friends appear orange after party members, and separate experimental join-time groups of at least two use successive red, blue, green, yellow, aqua, white, pink, and gray colors. Verify solo joins stay uncolored.
+- [ ] Verify Comfy spacing is the default, Compact reduces column width, and dividers remain visible in both. Confirm the initial visible fields are heads, combined name/rank, FKDR, level, WLR, and highest winstreak.
+- [ ] With default HP in TAB, check Poppins and Minecraft fonts; confirm Minecraft's heart icon appears, HP values match in-game health, and the General → Stats switch hides HP outside a match.
+- [ ] Check in-game TAB and nametags preserve server team colors. In waiting rooms, confirm ordinary names are gray, rank labels retain VIP/Elite/Titan/Champion colors, and unranked combined-name cells have no dash.
+- [ ] Confirm Elite rank text matches its cyan server prefix, including combined mode. Check level colors at 9/10, 49/50, 89/90, and 99/100; confirm FK and Wins are hidden in new TAB and HUD profiles.
 - [ ] Compare Above username and With username nametags, including Pika's below-name hearts, sneaking and team-colored names. Check match-overview text is vertically centered with Minecraft, Poppins and custom fonts.
 - [ ] In a waiting room with nicked players, verify a same-team remove/add rewrite displays `Nick OriginalName`, styles the original grey italic, fetches the original account's stats, retains the mapping in-game, and never pairs ordinary joins/quits.
-- [ ] Enable General → Advanced → Debug logging before entering a waiting room; verify successful mappings and unresolved nicks include useful team/reason details without errors when disabled.
+- [ ] Enable Advanced → Debug logging before entering a waiting room; verify successful mappings and unresolved nicks include useful team/reason details without errors when disabled.
 - [ ] Hold/release TAB repeatedly with the duplicate HUD enabled; confirm vanilla TAB and VanillaHUD's empty background stay hidden, while VanillaHUD works normally when PikaStats TAB is disabled.
 - [ ] Show and hide TAB and HUD repeatedly; check each hide style, especially Pop, and duration. Add/remove players and switch sort order; check skeleton loading rows, smooth panel resizing, entry/disconnect slides, vertical reorder motion, centered heads, text fit, and row alignment at multiple GUI scales.
 - [ ] Toggle loading skeleton independently for TAB and HUD. Confirm names, heads, and ping appear before stats; low performance mode stops shimmer. During a match, toggle the TAB overview and compare all three counters with vanilla TAB.
@@ -22,7 +27,7 @@
 - [ ] Check Minecraft, resource-pack and custom TTF fonts, colored names, Unicode and grey italic spectator names.
 - [ ] Put separate PNGs in `backgrounds/` and a TTF in `fonts/`; check manual and random local backgrounds, independent TAB/HUD selections, transparency, opacity, alignment and size. Turn on Keep image size, change player counts, and confirm image scale stays fixed until reload. Check legacy locations, missing/corrupt files and oversized images.
 - [ ] Enable Catbox, request new waifu images separately for TAB and HUD, exit Minecraft, and confirm `catbox-cache` no longer holds downloaded images. Check the image size limit.
-- [ ] Check nametag master default off, Always show preselected, waiting/in-game switches off, and no labels outside BedWars while BedWars only is enabled. Check stat modes, unbracketed Above username and white brackets in With username, distance, invisible/sneaking players and nametag-mod compatibility.
+- [ ] Check nametag status default on, Always show preselected, waiting/in-game switches off, and no labels outside BedWars while BedWars only is enabled. Check stat modes, unbracketed Above username and white brackets in With username, distance, invisible/sneaking players and nametag-mod compatibility.
 - [ ] Check zero stats, NO STATS, API DISABLED, unresolved NICKED, network failures, party highlight, grey FK/Wins/Beds values, and verify stat sorting does not affect the main BedWars lobby.
 - [x] Confirm author names, 128-pixel icon, version and release jar contents.
-- [ ] Publish only after the client checks above pass.
+- [ ] Complete the remaining client checks and record any post-release fixes.

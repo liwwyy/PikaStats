@@ -3,8 +3,15 @@ package dev.movi.pikastats.config;
 import cc.polyfrost.oneconfig.config.Config;
 import cc.polyfrost.oneconfig.config.annotations.*;
 import cc.polyfrost.oneconfig.config.core.OneKeyBind;
+import cc.polyfrost.oneconfig.config.core.ConfigUtils;
 import cc.polyfrost.oneconfig.config.data.Mod;
 import cc.polyfrost.oneconfig.config.data.ModType;
+import cc.polyfrost.oneconfig.config.data.PageLocation;
+import cc.polyfrost.oneconfig.config.data.InfoType;
+import cc.polyfrost.oneconfig.config.elements.OptionCategory;
+import cc.polyfrost.oneconfig.config.elements.OptionSubcategory;
+import cc.polyfrost.oneconfig.gui.elements.config.ConfigPageButton;
+import cc.polyfrost.oneconfig.gui.pages.ModConfigPage;
 import cc.polyfrost.oneconfig.libs.universal.UKeyboard;
 import dev.movi.pikastats.hud.StatsHud;
 import dev.movi.pikastats.hud.TabHud;
@@ -21,8 +28,15 @@ public final class PikaConfig extends Config {
     public static boolean onlyOnPika = true;
     @Switch(name = "BedWars only", category = "General", subcategory = "Core")
     public static boolean bedWarsOnly = true;
-    @Switch(name = "Denicking", category = "General", subcategory = "Core")
-    public static boolean denicking = true;
+    @Info(text = "Denicking may be bannable on Pika. Avoid sharing screenshots or bragging about it.",
+          type = InfoType.ERROR, size = 2, category = "Denick", subcategory = "Warning")
+    public static boolean denickWarning;
+    @Switch(name = "Enable denicking", category = "Denick", subcategory = "Detection")
+    public static boolean denicking = false;
+    @Switch(name = "Show real name in overlay", category = "Denick", subcategory = "Detection")
+    public static boolean showDenickedName = false;
+    @Switch(name = "Show HP only in game", category = "General", subcategory = "Stats")
+    public static boolean hpOnlyInGame = true;
     @Switch(name = "Low performance mode", category = "General", subcategory = "Performance")
     public static boolean lowPerformanceMode = false;
     @Dropdown(name = "BedWars mode", options = {"Overall", "Solo", "Doubles", "Quads"},
@@ -34,32 +48,55 @@ public final class PikaConfig extends Config {
     @Slider(name = "Max API players", min = 1, max = 40, step = 1, category = "General",
             subcategory = "Stats")
     public static int maxPlayersToFetch = 16;
-    @Slider(name = "Cache TTL (seconds)", min = 120, max = 600, step = 10, category = "General",
+    @Slider(name = "Cache TTL (seconds)", min = 120, max = 600, step = 10, category = "Advanced",
             subcategory = "Advanced")
     public static int cacheTtlSeconds = 300;
-    @Slider(name = "Ping refresh (ms)", min = 250, max = 3000, step = 50, category = "General",
+    @Slider(name = "Ping refresh (ms)", min = 250, max = 3000, step = 50, category = "Advanced",
             subcategory = "Advanced")
     public static int pingUpdateIntervalMs = 1000;
-    @Switch(name = "Debug logging", category = "General", subcategory = "Advanced")
+    @Switch(name = "Debug logging", category = "Advanced", subcategory = "Advanced")
     public static boolean debugLogging = false;
-    @Switch(name = "Highlight party members", category = "General", subcategory = "Party")
+    @Switch(name = "Highlight party members", category = "Party", subcategory = "Your party")
     public static boolean partyHighlightEnabled = true;
-    @Switch(name = "Party members first", category = "General", subcategory = "Party")
+    @Switch(name = "Party members first", category = "Party", subcategory = "Your party")
     public static boolean partySortFirst = true;
+    @Switch(name = "Detect other parties (experimental)", category = "Party", subcategory = "Other parties")
+    public static boolean detectOtherParties = false;
+    @Slider(name = "Join window (ms)", min = 50, max = 2000, step = 50, category = "Party", subcategory = "Other parties")
+    public static int otherPartyWindowMs = 350;
+    // Legacy single-color setting retained to load older profiles.
+    public static int otherPartyColor = 1;
+    @Switch(name = "Highlight friends", category = "Friends", subcategory = "Highlight")
+    public static boolean highlightFriends = true;
+    @Switch(name = "Friends after party", category = "Friends", subcategory = "Sorting")
+    public static boolean friendsAfterParty = true;
+    @Switch(name = "Gray regular names", category = "General", subcategory = "Appearance")
+    public static boolean grayNames = true;
+    @Dropdown(name = "Column spacing", options = {"Comfy", "Compact"}, category = "General",
+              subcategory = "Appearance")
+    public static int columnSpacing = 0;
     @KeyBind(name = "Open PikaStats settings", category = "General", subcategory = "Hotkeys")
     public static OneKeyBind openConfigKey = new OneKeyBind(UKeyboard.KEY_O);
     @KeyBind(name = "Toggle PikaStats", category = "General", subcategory = "Hotkeys")
     public static OneKeyBind toggleOverlayKey = new OneKeyBind(0);
 
+    public static final class TabPositionPage {
+        @Button(name = "Edit TAB position", text = "Open", category = "Position", subcategory = "Controls")
+        public static Runnable edit = dev.movi.pikastats.hud.HudEditor::open;
+    }
+    public static final class HudPositionPage {
+        @Button(name = "Edit HUD position", text = "Open", category = "Position", subcategory = "Controls")
+        public static Runnable edit = dev.movi.pikastats.hud.HudEditor::open;
+    }
+    @Page(name = "Position", location = PageLocation.TOP, category = "TAB")
+    public TabPositionPage tabPositionPage = new TabPositionPage();
     @HUD(name = "TAB", category = "TAB", subcategory = "Position")
     public TabHud tabHud = new TabHud();
-    @Button(name = "Edit TAB position", text = "Open", category = "TAB", subcategory = "Position")
-    public static Runnable editTabPosition = dev.movi.pikastats.hud.HudEditor::open;
 
     // Legacy setting, migrated into the OneConfig TAB HUD's enable switch.
     public static boolean tabEnabled = true;
     @Switch(name = "Always show", category = "TAB", subcategory = "Core")
-    public static boolean tabAlwaysShow = false;
+    public static boolean tabAlwaysShow = true;
     @Switch(name = "Show in waiting lobby", category = "TAB", subcategory = "Core")
     public static boolean tabShowWaiting = true;
     @Switch(name = "Show in game", category = "TAB", subcategory = "Core")
@@ -130,16 +167,20 @@ public final class PikaConfig extends Config {
     @Switch(name = "WLR", category = "TAB", subcategory = "Columns")
     public static boolean tabShowWlr = true;
     @Switch(name = "Final kills", category = "TAB", subcategory = "Columns")
-    public static boolean tabShowFinalKills = true;
+    public static boolean tabShowFinalKills = false;
     @Switch(name = "Wins", category = "TAB", subcategory = "Columns")
-    public static boolean tabShowWins = true;
+    public static boolean tabShowWins = false;
     @Switch(name = "Beds", category = "TAB", subcategory = "Columns")
     public static boolean tabShowBeds = false;
     @Switch(name = "Ping", category = "TAB", subcategory = "Columns")
-    public static boolean tabShowPing = true;
-    @Text(name = "Column order", placeholder = "LV,RANK,NAME,FKDR,WLR,HWS,FK,WINS,BEDS,PING",
+    public static boolean tabShowPing = false;
+    @Switch(name = "Guild", category = "TAB", subcategory = "Columns")
+    public static boolean tabShowGuild = false;
+    @Switch(name = "HP", category = "TAB", subcategory = "Columns")
+    public static boolean tabShowHp = true;
+    @Text(name = "Column order", placeholder = "NAME,FKDR,LV,WLR,HWS,FK,WINS,BEDS,GUILD,HP,PING",
           category = "TAB", subcategory = "Columns")
-    public static String tabColumnOrder = "LV,RANK,NAME,FKDR,WLR,HWS,FK,WINS,BEDS,PING";
+    public static String tabColumnOrder = "NAME,FKDR,LV,WLR,HWS,FK,WINS,BEDS,GUILD,HP,PING";
 
     @Switch(name = "Sort waiting-lobby TAB", category = "TAB", subcategory = "Sorting")
     public static boolean tabSortEnabled = true;
@@ -169,10 +210,10 @@ public final class PikaConfig extends Config {
     @Slider(name = "Image size (%)", min = 10, max = 200, step = 5, category = "TAB",
             subcategory = "Image")
     public static int tabImageSize = 100;
+    @Page(name = "Position", location = PageLocation.TOP, category = "HUD")
+    public HudPositionPage hudPositionPage = new HudPositionPage();
     @HUD(name = "Player stats", category = "HUD", subcategory = "Position")
     public StatsHud statsHud = new StatsHud();
-    @Button(name = "Edit HUD position", text = "Open", category = "HUD", subcategory = "Position")
-    public static Runnable editHudPosition = dev.movi.pikastats.hud.HudEditor::open;
 
     @Switch(name = "Always show", category = "HUD", subcategory = "Core")
     public static boolean hudAlwaysShow = false;
@@ -243,16 +284,18 @@ public final class PikaConfig extends Config {
     @Switch(name = "WLR", category = "HUD", subcategory = "Columns")
     public static boolean hudShowWlr = true;
     @Switch(name = "Final kills", category = "HUD", subcategory = "Columns")
-    public static boolean hudShowFinalKills = true;
+    public static boolean hudShowFinalKills = false;
     @Switch(name = "Wins", category = "HUD", subcategory = "Columns")
-    public static boolean hudShowWins = true;
+    public static boolean hudShowWins = false;
     @Switch(name = "Beds", category = "HUD", subcategory = "Columns")
     public static boolean hudShowBeds = false;
     @Switch(name = "Ping", category = "HUD", subcategory = "Columns")
-    public static boolean hudShowPing = true;
-    @Text(name = "Column order", placeholder = "LV,RANK,NAME,FKDR,WLR,HWS,FK,WINS,BEDS,PING",
+    public static boolean hudShowPing = false;
+    @Switch(name = "Guild", category = "HUD", subcategory = "Columns")
+    public static boolean hudShowGuild = false;
+    @Text(name = "Column order", placeholder = "NAME,FKDR,LV,WLR,HWS,FK,WINS,BEDS,GUILD,PING",
           category = "HUD", subcategory = "Columns")
-    public static String hudColumnOrder = "LV,RANK,NAME,FKDR,WLR,HWS,FK,WINS,BEDS,PING";
+    public static String hudColumnOrder = "NAME,FKDR,LV,WLR,HWS,FK,WINS,BEDS,GUILD,PING";
 
     @Switch(name = "Sort waiting-lobby HUD", category = "HUD", subcategory = "Sorting")
     public static boolean hudSortEnabled = true;
@@ -296,7 +339,9 @@ public final class PikaConfig extends Config {
     @Switch(name = "Keep image size", category = "General", subcategory = "Assets")
     public static boolean staticImageSize = false;
     @Switch(name = "Enable nametag stats", category = "Nametags", subcategory = "Stats")
-    public static boolean nametagsEnabled = false;
+    public static boolean nametagsEnabled = true;
+    @Switch(name = "Gray regular names", category = "Nametags", subcategory = "Appearance")
+    public static boolean grayNametagNames = true;
     @Dropdown(name = "Nametag display mode", options = {"Above username", "With username"},
               category = "Nametags", subcategory = "Stats")
     public static int nametagDisplayMode = 0;
@@ -331,6 +376,9 @@ public final class PikaConfig extends Config {
               "pikastats.json");
         INSTANCE = this;
         initialize();
+        movePositionControls("TAB");
+        movePositionControls("HUD");
+        orderSections();
         migrateSettings();
         sanitizeLoadedValues();
         save();
@@ -349,6 +397,33 @@ public final class PikaConfig extends Config {
             }
         });
     }
+    private void movePositionControls(String category) {
+        OptionCategory group = mod.defaultPage.categories.get(category);
+        if (group == null) return;
+        OptionSubcategory controls = ConfigUtils.getSubCategory(mod.defaultPage, category, "Position");
+        ConfigPageButton button = null;
+        for (OptionSubcategory section : group.subcategories)
+            for (ConfigPageButton candidate : section.topButtons)
+                if ("Position".equals(candidate.name)) button = candidate;
+        if (button == null || !(button.page instanceof ModConfigPage)) return;
+        ModConfigPage page = (ModConfigPage) button.page;
+        OptionSubcategory target = ConfigUtils.getSubCategory(page.getPage(), "Position", "Controls");
+        target.options.addAll(controls.options);
+        controls.options.clear();
+        group.subcategories.remove(controls);
+    }
+    private void orderSections() {
+        java.util.LinkedHashMap<String, OptionCategory> categories = mod.defaultPage.categories;
+        java.util.LinkedHashMap<String, OptionCategory> ordered =
+            new java.util.LinkedHashMap<String, OptionCategory>();
+        for (String name : new String[] {"General", "TAB", "HUD", "Nametags"}) {
+            OptionCategory category = categories.get(name);
+            if (category != null) ordered.put(name, category);
+        }
+        ordered.putAll(categories);
+        categories.clear();
+        categories.putAll(ordered);
+    }
     @Override
     public void load() {
         // A profile without this field must migrate even after switching profiles.
@@ -359,12 +434,42 @@ public final class PikaConfig extends Config {
     }
 
     private void migrateSettings() {
-        if (settingsVersion >= 5)
+        if (settingsVersion >= 8)
             return;
+        if (settingsVersion == 7) {
+            tabAlwaysShow = true;
+            tabShowHp = true;
+            nametagsEnabled = true;
+            settingsVersion = 8;
+            return;
+        }
+        if (settingsVersion == 6) {
+            if ("LV,RANK,NAME,FKDR,WLR,HWS,FK,WINS,BEDS,GUILD,HP,PING".equalsIgnoreCase(tabColumnOrder)) {
+                tabColumnOrder = "NAME,FKDR,LV,WLR,HWS,FK,WINS,BEDS,GUILD,HP,PING";
+                tabShowFinalKills = tabShowWins = tabShowPing = tabShowHp = false;
+            }
+            if ("LV,RANK,NAME,FKDR,WLR,HWS,FK,WINS,BEDS,GUILD,PING".equalsIgnoreCase(hudColumnOrder)) {
+                hudColumnOrder = "NAME,FKDR,LV,WLR,HWS,FK,WINS,BEDS,GUILD,PING";
+                hudShowFinalKills = hudShowWins = hudShowPing = false;
+            }
+            settingsVersion = 7;
+            migrateSettings();
+            return;
+        }
+        if (settingsVersion == 5) {
+            denicking = false;
+            showDenickedName = false;
+            if (!tabColumnOrder.toUpperCase(java.util.Locale.ROOT).contains("HP"))
+                tabColumnOrder = tabColumnOrder.replace("PING", "GUILD,HP,PING");
+            settingsVersion = 6;
+            migrateSettings();
+            return;
+        }
         if (settingsVersion == 4) {
             if (tabAnimationDuration == 180) tabAnimationDuration = 120;
             if (hudAnimationDuration == 180) hudAnimationDuration = 120;
             settingsVersion = 5;
+            migrateSettings();
             return;
         }
         if (settingsVersion == 3) {
@@ -466,18 +571,19 @@ public final class PikaConfig extends Config {
         hudImagePosition = clamp(hudImagePosition, 0, 2);
         tabImageSize = clamp(tabImageSize, 10, 200);
         hudImageSize = clamp(hudImageSize, 10, 200);
+        otherPartyWindowMs = clamp(otherPartyWindowMs, 50, 2000);
+        otherPartyColor = clamp(otherPartyColor, 0, 7);
+        columnSpacing = clamp(columnSpacing, 0, 1);
         tabColumnOrder = sanitizeOrder(tabColumnOrder);
         hudColumnOrder = sanitizeOrder(hudColumnOrder);
     }
 
     private static String sanitizeOrder(String raw) {
         if (raw == null || raw.trim().isEmpty())
-            return "LV,RANK,NAME,FKDR,WLR,HWS,FK,WINS,BEDS,PING";
-        // Accept the old PikaStats order and remove retired health aliases from
-        // migrated configs.
+            return "NAME,FKDR,LV,WLR,HWS,FK,WINS,BEDS,GUILD,HP,PING";
+        // Accept the old PikaStats order and retain the current HP column.
         String normalized = raw.toUpperCase(java.util.Locale.ROOT)
-                                .replace("HEALTH", "")
-                                .replace("HP", "")
+                                .replace("HEALTH", "HP")
                                 .replaceAll(",+", ",")
                                 .replaceAll("^,|,$", "");
         if (normalized.equals("LV,RANK,NAME,WS,FKDR,WLR,FK,WINS"))

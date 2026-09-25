@@ -63,8 +63,12 @@ public final class DenickRegistry {
         }
         if (action == 0 || action == 3) {
             rosterEvents++;
+            boolean ambiguousBatch = action == 3 && waiting && names.size() > 1;
             if (action == 3 && waiting && names.size() == 1)
                 match(team, names.get(0), now);
+            else if (ambiguousBatch)
+                for (String name : names)
+                    LAST_STAGE.put(lower(name), "batched replacement in team " + team + "; identity ambiguous");
             for (String name : names) {
                 roster.put(lower(name), now);
                 if (action == 3 && !waiting) {
@@ -77,7 +81,7 @@ public final class DenickRegistry {
                             + (team.equals(recentOutsideRemovalTeam) ? " (same team, but outside waiting)"
                                 : " (different team; cannot pair)");
                     LAST_STAGE.put(lower(name), stage);
-                } else if (action == 0 || !LAST_STAGE.containsKey(lower(name)))
+                } else if (!ambiguousBatch && (action == 0 || !LAST_STAGE.containsKey(lower(name))))
                     LAST_STAGE.put(lower(name), "seen in team " + team + " roster (action " + action + ", waiting=" + waiting + ")");
             }
             return;
@@ -126,6 +130,11 @@ public final class DenickRegistry {
         }
         if (queue.isEmpty()) {
             LAST_STAGE.put(lower(nick), "replacement add in team " + team + " had no removal within 1500 ms");
+            return;
+        }
+        if (queue.size() > 1) {
+            LAST_STAGE.put(lower(nick), "multiple originals removed from team " + team
+                + "; cannot safely identify replacement");
             return;
         }
         Pending candidate = queue.removeFirst();

@@ -4,6 +4,8 @@ import dev.movi.pikastats.api.StatsManager;
 import dev.movi.pikastats.config.PikaConfig;
 import dev.movi.pikastats.model.PlayerStats;
 import dev.movi.pikastats.tab.TabFormat;
+import dev.movi.pikastats.party.PartyTracker;
+import dev.movi.pikastats.util.FriendList;
 import dev.movi.pikastats.util.ScoreboardUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.RendererLivingEntity;
@@ -28,6 +30,16 @@ public abstract class PlayerNametagMixin {
     pikastats$label(EntityLivingBase entity) {
         IChatComponent original = entity.getDisplayName();
         String name = original.getFormattedText();
+        if (entity instanceof EntityPlayer && PikaConfig.grayNametagNames
+            && PikaConfig.isModEnabled() && ScoreboardUtil.allowedContext()
+            && ScoreboardUtil.bedWarsState() != ScoreboardUtil.BedWarsState.IN_GAME) {
+            String username = entity.getName();
+            String color = PikaConfig.partyHighlightEnabled && PartyTracker.isMember(username) ? "§d"
+                : PikaConfig.highlightFriends && FriendList.contains(username) ? "§6" : "§7";
+            int at = name.lastIndexOf(username);
+            if (at >= 0) name = name.substring(0, at) + color + username + name.substring(at + username.length());
+            original = new ChatComponentText(name);
+        }
         if (!(entity instanceof EntityPlayer) || !ScoreboardUtil.shouldRenderNametags())
             return original;
         PlayerStats stats = StatsManager.peek(entity.getName());

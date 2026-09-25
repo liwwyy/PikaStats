@@ -116,7 +116,7 @@ public final class ScoreboardUtil {
     public static List<String> visibleSidebarStrings() {
         ArrayList<String> out = new ArrayList<String>();
         Minecraft mc = Minecraft.getMinecraft();
-        if (mc.theWorld == null)
+        if (mc == null || mc.theWorld == null)
             return out;
         Scoreboard board = mc.theWorld.getScoreboard();
         if (board == null)

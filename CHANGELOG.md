@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.6.0
+
+- Enable TAB's Always show and HP column and enable nametag status by default, including profiles upgraded from earlier versions.
+- Match combined rank text to its visible tab-list prefix color when available; make Elite cyan in the fallback palette. Color level numbers in ten-level bands through level 100. Keep FK and Wins off in both default tables.
+- Restore team-colored usernames in games and color plain API rank labels in combined mode. Leave unranked combined-name cells empty and highlight friends orange.
+- Give each experimental join-time party cluster of at least two players its own red-to-gray palette color. Draw the TAB HP header from Minecraft's heart texture, independent of the selected font.
+- Show only heads, combined name/rank, FKDR, level, WLR, and highest winstreak by default. Offer Comfy and Compact column spacing, with Comfy selected initially; brighten dividers.
+- Order settings General, TAB, HUD, Nametags before the other sections; move the HP visibility switch to General → Stats and place the full-width denick warning first.
+- Add TAB-only HP and optional TAB/HUD guild columns from Pika's live profile schema.
+- Highlight and sort API friends after your party. Add default-off join-time hints for other parties with a configurable window, and broaden party chat recognition.
+- Put Denick, Party, Friends, and Advanced options in separate settings sections. Turn denicking off for existing and new profiles, add a warning, and avoid assigning ambiguous simultaneous rewrites.
+- Gray ordinary player names while preserving rank text color, including a separate nametag option. Restore the Position submenus.
+
 ## 1.5.3
 
 - Place above-username stats above Pika's below-name hearts and the raised username, using Minecraft's font spacing and score visibility.

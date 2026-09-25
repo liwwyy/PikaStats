@@ -2,10 +2,12 @@ package dev.movi.pikastats.mixin;
 
 import dev.movi.pikastats.denick.DenickRegistry;
 import dev.movi.pikastats.tab.MatchOverview;
+import dev.movi.pikastats.party.OtherPartyDetector;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.network.play.server.S3EPacketTeams;
 import net.minecraft.network.play.server.S47PacketPlayerListHeaderFooter;
+import net.minecraft.network.play.server.S38PacketPlayerListItem;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -13,6 +15,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(NetHandlerPlayClient.class)
 public abstract class NetHandlerTeamsMixin {
+    @Inject(method = "handlePlayerListItem", at = @At("HEAD"))
+    private void pikastats$captureJoins(S38PacketPlayerListItem packet, CallbackInfo ci) {
+        if (Minecraft.getMinecraft().isCallingFromMinecraftThread())
+            OtherPartyDetector.observe(packet);
+    }
     @Inject(method = "handleTeams", at = @At("HEAD"))
     private void pikastats$captureWaitingRoster(S3EPacketTeams packet, CallbackInfo ci) {
         // The handler is entered once on Netty and again after Minecraft queues

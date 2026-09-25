@@ -1,0 +1,11 @@
+# Reference review and next steps
+
+Reviewed [Cutie / PikaNetwork Internal Stats API](https://github.com/Linixie1/PikaNetwork-internal-stats-API) and [Hytils Reborn](https://github.com/Polyfrost/Hytils-Reborn) for this update. Cutie's repository has a restricted license, so no code was copied.
+
+Cutie exposes a larger set of BedWars measures than PikaStats: KDR, raw kills and deaths, final deaths, losses, games played, bow accuracy, bow kills, void kills, and melee kills. It also has player and clan search cards with clan owner, level, member list, and creation date. PikaStats now reads the profile's `clan.name` for an optional guild column; the live profile response for `movi6287` contained `clan.name = "Omori"` and `clan.tag = "❃Omori❃"`. Its `friends` array contains username objects. A clan tag option and clan search remain potential additions.
+
+Cutie's README advertises a denicker, but the checked-in sources contain no `DenickModule` implementation or verified real-name pairing algorithm. The tab list implementation marks unavailable profile lookups as nicked. Its claim therefore does not establish a reliable way to identify several simultaneous nicks. TCP delivers an ordered stream; the ambiguity arises from how server-side team rewrites interleave and from missing identity evidence. PikaStats now refuses ambiguous same-team pairings. Packet traces captured with consent in a controlled lobby are needed before expanding this mapping.
+
+Hytils uses several party join and leave message patterns, including self joins, member joins, leaving, kicks, and disbands. PikaStats now covers those event types and uses `/party list` after joins to reconcile membership. Pika-specific chat samples should be collected for remaining variants, then added as fixtures. Join-time clusters in the experimental other-party detector cannot prove party membership or the team a party will receive; the sidebar describes the current match, not a future destination.
+
+The next implementation work is to collect timestamped Pika party and team packet traces across solo, doubles, and quads; add fixtures for message formats and simultaneous joins; then evaluate whether server-exposed team data can increase confidence without false identity claims. After that, optional Cutie-style stat columns and a clan details view can be prioritized by demand and API cost.

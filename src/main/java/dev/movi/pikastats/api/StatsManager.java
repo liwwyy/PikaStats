@@ -184,9 +184,10 @@ public final class StatsManager {
             return previous;
         if (!fetched.hasProfile() && previous.hasProfile()) {
             fetched.level = previous.level;
-            fetched.levelColor = previous.levelColor;
             fetched.rank = previous.rank;
             fetched.rankShort = previous.rankShort;
+            fetched.guild = previous.guild;
+            fetched.friends = previous.friends;
         }
         if (!fetched.noStats && !fetched.hasBedWarsStats() && previous.hasBedWarsStats()) {
             fetched.wins = previous.wins;
@@ -318,22 +319,47 @@ public final class StatsManager {
         if (!data.has("username"))
             throw new IOException("Unexpected profile response");
         out.username = string(data, "username", fallback);
+        JsonObject clan = object(data, "clan");
+        if (clan != null)
+            out.guild = string(clan, "name", "");
+        JsonArray friends = array(data, "friends");
+        if (friends != null) {
+            HashSet<String> names = new HashSet<String>();
+            for (JsonElement friend : friends) {
+                if (!friend.isJsonObject()) continue;
+                String name = string(friend.getAsJsonObject(), "username", "");
+                if (valid(name)) names.add(name.toLowerCase(Locale.ROOT));
+            }
+            out.friends = Collections.unmodifiableSet(names);
+        }
         JsonObject rankObj = object(data, "rank");
         if (rankObj != null) {
             out.level = nullableInt(rankObj, "level");
-            out.levelColor =
-                LegacyText.firstColor(string(rankObj, "rankDisplay", "&7"), EnumChatFormatting.GRAY);
         }
         JsonArray ranks = array(data, "ranks");
         JsonObject best = chooseRank(ranks);
         if (best != null) {
             String raw = string(best, "displayName", string(best, "name", ""));
-            out.rank = LegacyText.ampToSection(raw);
             String plain = LegacyText.plain(raw).replace("[", "").replace("]", "").trim();
+            EnumChatFormatting color = rankColor(plain);
+            String formatted = LegacyText.ampToSection(raw);
+            out.rank = formatted.indexOf('\u00a7') >= 0 ? formatted : color + formatted;
             if (plain.length() > 6)
                 plain = plain.substring(0, 6);
-            out.rankShort = LegacyText.firstColor(raw, EnumChatFormatting.GRAY).toString() + plain;
+            out.rankShort = LegacyText.firstColor(raw, color).toString() + plain;
         }
+    }
+
+    private static EnumChatFormatting rankColor(String name) {
+        String rank = name.toLowerCase(Locale.ROOT);
+        if (rank.equals("vip")) return EnumChatFormatting.GREEN;
+        if (rank.equals("elite")) return EnumChatFormatting.AQUA;
+        if (rank.equals("titan")) return EnumChatFormatting.GOLD;
+        if (rank.equals("champion")) return EnumChatFormatting.RED;
+        if (rank.contains("youtube") || rank.contains("admin") || rank.contains("owner"))
+            return EnumChatFormatting.RED;
+        if (rank.contains("helper") || rank.contains("mod")) return EnumChatFormatting.AQUA;
+        return EnumChatFormatting.GRAY;
     }
 
     private static JsonObject chooseRank(JsonArray ranks) {

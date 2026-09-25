@@ -6,6 +6,7 @@ public final class DenickRegression {
     private DenickRegression() {}
 
     public static boolean run() {
+        dev.movi.pikastats.config.PikaConfig.denicking = true;
         DenickRegistry.clear();
         long start = 1_000_000_000L;
         DenickRegistry.observe(3, "waiting", Arrays.asList("HandsomeproBoy", "RegularPlayer"),
@@ -34,7 +35,15 @@ public final class DenickRegression {
         if (DenickRegistry.realName("AnotherNick") != null) return false;
         DenickRegistry.observe(3, "different-team", Arrays.asList("notPink_York_"), false,
                                start + 32_000_000L);
-        return DenickRegistry.realName("notPink_York_") == null
-            && DenickRegistry.diagnosticStage("notPink_York_").contains("different team; cannot pair");
+        if (DenickRegistry.realName("notPink_York_") != null
+            || !DenickRegistry.diagnosticStage("notPink_York_").contains("different team; cannot pair"))
+            return false;
+        DenickRegistry.observe(3, "crowded", Arrays.asList("OriginalOne", "OriginalTwo"), true,
+                               start + 40_000_000L);
+        DenickRegistry.observe(4, "crowded", Arrays.asList("OriginalOne", "OriginalTwo"), true,
+                               start + 41_000_000L);
+        DenickRegistry.observe(3, "crowded", Arrays.asList("NickOne"), true,
+                               start + 42_000_000L);
+        return DenickRegistry.realName("NickOne") == null;
     }
 }

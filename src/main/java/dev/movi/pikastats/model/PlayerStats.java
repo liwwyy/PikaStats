@@ -1,6 +1,8 @@
 package dev.movi.pikastats.model;
 
 import java.util.Locale;
+import java.util.Set;
+import java.util.Collections;
 import net.minecraft.util.EnumChatFormatting;
 
 public final class PlayerStats {
@@ -8,8 +10,9 @@ public final class PlayerStats {
     public boolean failed, nicked, apiDisabled, noStats;
     public String failureReason = "", username = "";
     public Integer level, wins, losses, finalKills, finalDeaths, kills, deaths, beds, games, bestWinstreak;
-    public EnumChatFormatting levelColor = EnumChatFormatting.GRAY;
     public String rank = "", rankShort = "";
+    public String guild = "";
+    public Set<String> friends = Collections.emptySet();
 
     public PlayerStats() {}
     public PlayerStats(String username) {
@@ -32,7 +35,15 @@ public final class PlayerStats {
     }
 
     public String levelText() {
-        return level == null ? EnumChatFormatting.DARK_GRAY + "?" : levelColor.toString() + level;
+        return level == null ? EnumChatFormatting.DARK_GRAY + "?" : levelColor(level) + Integer.toString(level);
+    }
+    public static EnumChatFormatting levelColor(int value) {
+        EnumChatFormatting[] bands = {EnumChatFormatting.GRAY, EnumChatFormatting.WHITE,
+            EnumChatFormatting.GREEN, EnumChatFormatting.AQUA, EnumChatFormatting.BLUE,
+            EnumChatFormatting.DARK_PURPLE, EnumChatFormatting.LIGHT_PURPLE,
+            EnumChatFormatting.YELLOW, EnumChatFormatting.GOLD, EnumChatFormatting.RED,
+            EnumChatFormatting.DARK_RED};
+        return bands[Math.max(0, Math.min(10, value / 10))];
     }
     public String rankText() {
         return rank == null || rank.trim().isEmpty() ? EnumChatFormatting.GRAY + "-" : rank;
@@ -112,9 +123,10 @@ public final class PlayerStats {
         p.noStats = noStats;
         p.failureReason = failureReason;
         p.level = level;
-        p.levelColor = levelColor;
         p.rank = rank;
         p.rankShort = rankShort;
+        p.guild = guild;
+        p.friends = friends;
         p.wins = wins;
         p.losses = losses;
         p.finalKills = finalKills;

@@ -4,6 +4,10 @@ import dev.movi.pikastats.config.PikaConfig;
 import dev.movi.pikastats.denick.DenickRegistry;
 import dev.movi.pikastats.model.PlayerStats;
 import dev.movi.pikastats.party.PartyTracker;
+import dev.movi.pikastats.party.OtherPartyDetector;
+import dev.movi.pikastats.util.FriendList;
+import dev.movi.pikastats.util.LegacyText;
+import dev.movi.pikastats.util.PlayerHealth;
 import dev.movi.pikastats.util.PingDisplay;
 import dev.movi.pikastats.util.PlayerListUtil;
 import dev.movi.pikastats.util.ScoreboardUtil;
@@ -25,7 +29,7 @@ public final class TabFormat {
         }
     }
     private static final List<String> CANON =
-        Arrays.asList("lv", "rank", "name", "fkdr", "wlr", "ws", "fk", "wins", "beds", "ping");
+        Arrays.asList("lv", "rank", "name", "fkdr", "wlr", "ws", "fk", "wins", "beds", "guild", "hp", "ping");
     private static final Map<String, String> ALIASES = new HashMap<String, String>();
     static {
         alias("lv", "lv", "level");
@@ -38,6 +42,8 @@ public final class TabFormat {
         alias("wins", "wins", "win");
         alias("beds", "beds", "bed", "bb");
         alias("ping", "ping", "latency");
+        alias("guild", "guild", "clan");
+        alias("hp", "hp", "health", "hearts");
     }
     private TabFormat() {}
     private static void alias(String id, String... xs) {
@@ -91,6 +97,9 @@ public final class TabFormat {
                 return PikaConfig.tabShowBeds;
             if (id.equals("ping"))
                 return PikaConfig.tabShowPing;
+            if (id.equals("guild")) return PikaConfig.tabShowGuild;
+            if (id.equals("hp")) return PikaConfig.tabShowHp &&
+                (!PikaConfig.hpOnlyInGame || ScoreboardUtil.bedWarsState() == ScoreboardUtil.BedWarsState.IN_GAME);
         } else {
             if (id.equals("lv"))
                 return PikaConfig.hudShowLevel;
@@ -112,6 +121,7 @@ public final class TabFormat {
                 return PikaConfig.hudShowBeds;
             if (id.equals("ping"))
                 return PikaConfig.hudShowPing;
+            if (id.equals("guild")) return PikaConfig.hudShowGuild;
         }
         return false;
     }
@@ -136,6 +146,8 @@ public final class TabFormat {
             return new Column(id, "BEDS", true);
         if (id.equals("ping"))
             return new Column(id, "PING", true);
+        if (id.equals("guild")) return new Column(id, "GUILD", false);
+        if (id.equals("hp")) return new Column(id, "", true);
         return new Column(id, id.toUpperCase(Locale.ROOT), false);
     }
 
@@ -153,18 +165,62 @@ public final class TabFormat {
         return s == null ? EnumChatFormatting.GRAY + "-" : s.rankText();
     }
     public static String combinedSecondary(NetworkPlayerInfo info, PlayerStats s) {
-        String real = DenickRegistry.realName(PlayerListUtil.profileName(info));
-        return real == null ? rank(s)
-            : EnumChatFormatting.GRAY.toString() + EnumChatFormatting.ITALIC + real;
+        String real = PikaConfig.showDenickedName ? DenickRegistry.realName(PlayerListUtil.profileName(info)) : null;
+        if (real != null) return EnumChatFormatting.GRAY.toString() + EnumChatFormatting.ITALIC + real;
+        return s == null || s.rank == null || s.rank.trim().isEmpty() ? "" : liveRank(info, s);
+    }
+    private static String liveRank(NetworkPlayerInfo info, PlayerStats s) {
+        if (info == null) return s.rankText();
+        String username = PlayerListUtil.profileName(info);
+        String rankName = LegacyText.plain(s.rank).replace("[", "").replace("]", "").trim();
+        if (rankName.isEmpty()) return s.rankText();
+        try {
+            IChatComponent display = info.getDisplayName();
+            EnumChatFormatting color = rankColorInPrefix(
+                display == null ? null : display.getFormattedText(), username, rankName);
+            if (color != null) return color + rankName;
+        } catch (Throwable ignored) {
+        }
+        try {
+            ScorePlayerTeam team = info.getPlayerTeam();
+            EnumChatFormatting color = rankColorInPrefix(
+                team == null ? null : ScorePlayerTeam.formatPlayerName(team, username),
+                username, rankName);
+            if (color != null) return color + rankName;
+        } catch (Throwable ignored) {
+        }
+        return s.rankText();
+    }
+    private static EnumChatFormatting rankColorInPrefix(String formatted, String username, String rank) {
+        if (formatted == null || username == null || rank == null) return null;
+        int nameAt = formatted.toLowerCase(Locale.ROOT).lastIndexOf(username.toLowerCase(Locale.ROOT));
+        if (nameAt < 0) return null;
+        String prefix = formatted.substring(0, nameAt);
+        int rankAt = prefix.toLowerCase(Locale.ROOT).indexOf(rank.toLowerCase(Locale.ROOT));
+        if (rankAt < 0) return null;
+        return activeColorBefore(formatted, rankAt);
     }
     public static String name(NetworkPlayerInfo info) {
         String username = PlayerListUtil.profileName(info);
         if (info.getGameType() == net.minecraft.world.WorldSettings.GameType.SPECTATOR)
             return EnumChatFormatting.GRAY.toString() + EnumChatFormatting.ITALIC + username;
+        if (ScoreboardUtil.bedWarsState() == ScoreboardUtil.BedWarsState.IN_GAME)
+            return vanillaNameColor(info, username);
         if (PikaConfig.partyHighlightEnabled && PartyTracker.isInParty() &&
             PartyTracker.isMember(username) &&
             ScoreboardUtil.bedWarsState() == ScoreboardUtil.BedWarsState.WAITING)
             return EnumChatFormatting.LIGHT_PURPLE + username;
+        if (PikaConfig.highlightFriends && FriendList.contains(username))
+            return EnumChatFormatting.GOLD + username;
+        int group = OtherPartyDetector.colorIndex(username);
+        if (group >= 0)
+            return otherPartyColor(group) + username;
+        if (PikaConfig.grayNames) return EnumChatFormatting.GRAY + username;
+
+        return vanillaNameColor(info, username);
+    }
+
+    private static String vanillaNameColor(NetworkPlayerInfo info, String username) {
 
         // 1.8.9 servers frequently encode the actual player-name color in the
         // team prefix/display name instead of ScorePlayerTeam#getChatFormat().
@@ -194,6 +250,12 @@ public final class TabFormat {
         }
         return EnumChatFormatting.WHITE + username;
     }
+    private static EnumChatFormatting otherPartyColor(int group) {
+        EnumChatFormatting[] colors = {EnumChatFormatting.RED, EnumChatFormatting.BLUE,
+            EnumChatFormatting.GREEN, EnumChatFormatting.YELLOW, EnumChatFormatting.AQUA,
+            EnumChatFormatting.WHITE, EnumChatFormatting.LIGHT_PURPLE, EnumChatFormatting.GRAY};
+        return colors[group % colors.length];
+    }
 
     private static EnumChatFormatting activeColorAtUsername(String formatted, String username) {
         if (formatted == null || formatted.isEmpty() || username == null || username.isEmpty())
@@ -201,6 +263,9 @@ public final class TabFormat {
         int end = formatted.lastIndexOf(username);
         if (end < 0)
             end = formatted.length();
+        return activeColorBefore(formatted, end);
+    }
+    private static EnumChatFormatting activeColorBefore(String formatted, int end) {
         EnumChatFormatting active = null;
         for (int i = 0; i + 1 < end; i++) {
             if (formatted.charAt(i) != '\u00a7')
@@ -226,12 +291,14 @@ public final class TabFormat {
             return name(info);
         if (c.id.equals("ping"))
             return PingDisplay.formatted(info);
+        if (c.id.equals("hp")) return PlayerHealth.text(PlayerListUtil.profileName(info));
         if (s == null)
             return EnumChatFormatting.DARK_GRAY + "?";
         if (c.id.equals("lv"))
             return s.levelText();
         if (c.id.equals("rank"))
-            return rank(s);
+            return liveRank(info, s);
+        if (c.id.equals("guild")) return s.guild.isEmpty() ? "§8-" : "§7" + s.guild;
         if (c.id.equals("ws"))
             return s.winstreakText();
         if (c.id.equals("fkdr"))
@@ -248,7 +315,7 @@ public final class TabFormat {
     }
     public static String demo(Column c, int row) {
         if (c.id.equals("lv"))
-            return EnumChatFormatting.AQUA + "42";
+            return PlayerStats.levelColor(42) + "42";
         if (c.id.equals("rank"))
             return EnumChatFormatting.GOLD + "Titan";
         if (c.id.equals("name"))
@@ -267,6 +334,8 @@ public final class TabFormat {
             return "§f544";
         if (c.id.equals("ping"))
             return EnumChatFormatting.GREEN + "65ms";
+        if (c.id.equals("guild")) return "§7Wolves";
+        if (c.id.equals("hp")) return "§c20";
         return "§7?";
     }
     public static int[] statusSpan(List<Column> cols) {
@@ -277,7 +346,8 @@ public final class TabFormat {
     private static int[] findRun(List<Column> cols, int from) {
         int start = -1;
         for (int i = from; i < cols.size(); i++) {
-            boolean ok = !cols.get(i).id.equals("name") && !cols.get(i).id.equals("ping");
+            boolean ok = !cols.get(i).id.equals("name") && !cols.get(i).id.equals("ping")
+                && !cols.get(i).id.equals("hp") && !cols.get(i).id.equals("guild");
             if (ok && start < 0)
                 start = i;
             if (!ok && start >= 0)

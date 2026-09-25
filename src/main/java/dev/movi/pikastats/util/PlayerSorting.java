@@ -20,15 +20,18 @@ public final class PlayerSorting {
         ScoreboardUtil.BedWarsState state = ScoreboardUtil.bedWarsState();
         if (state == ScoreboardUtil.BedWarsState.IN_GAME) return players;
         final boolean partyFirst = PikaConfig.partySortFirst && PartyTracker.isInParty();
+        final boolean friendsFirst = PikaConfig.friendsAfterParty;
         final boolean statSort = state == ScoreboardUtil.BedWarsState.WAITING &&
             (tab ? PikaConfig.tabSortEnabled : PikaConfig.hudSortEnabled);
-        if (!partyFirst && !statSort)
+        if (!partyFirst && !friendsFirst && !statSort)
             return players;
         final TabSortStat stat = TabSortStat.fromIndex(tab ? PikaConfig.tabSortStat : PikaConfig.hudSortStat);
         final ArrayList<Row> rows = new ArrayList<Row>();
         for (int i = 0; i < players.size(); i++) {
             NetworkPlayerInfo info = players.get(i);
-            rows.add(new Row(info, i, partyFirst && PartyTracker.isMember(PlayerListUtil.profileName(info)),
+            String username = PlayerListUtil.profileName(info);
+            rows.add(new Row(info, i, partyFirst && PartyTracker.isMember(username),
+                friendsFirst && FriendList.contains(username),
                 statSort ? value(info, stat) : null));
         }
         Collections.sort(rows, new Comparator<Row>() {
@@ -36,6 +39,8 @@ public final class PlayerSorting {
             public int compare(Row a, Row b) {
                 if (partyFirst && a.party != b.party)
                     return a.party ? -1 : 1;
+                if (friendsFirst && a.friend != b.friend)
+                    return a.friend ? -1 : 1;
                 if (statSort && (a.score != null || b.score != null)) {
                     if (a.score == null)
                         return 1;
@@ -79,11 +84,13 @@ public final class PlayerSorting {
         final NetworkPlayerInfo info;
         final int index;
         final boolean party;
+        final boolean friend;
         final Double score;
-        Row(NetworkPlayerInfo i, int x, boolean p, Double s) {
+        Row(NetworkPlayerInfo i, int x, boolean p, boolean f, Double s) {
             info = i;
             index = x;
             party = p;
+            friend = f;
             score = s;
         }
     }

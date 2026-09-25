@@ -6,6 +6,7 @@ import dev.movi.pikastats.command.StatsCommand;
 import dev.movi.pikastats.config.PikaConfig;
 import dev.movi.pikastats.hud.StatsHudRenderer;
 import dev.movi.pikastats.party.PartyTracker;
+import dev.movi.pikastats.party.OtherPartyDetector;
 import dev.movi.pikastats.util.PingDisplay;
 import dev.movi.pikastats.util.PlayerListUtil;
 import dev.movi.pikastats.util.ScoreboardUtil;
@@ -76,6 +77,7 @@ public final class PikaStatsMod {
     public void onDisconnect(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
         dev.movi.pikastats.denick.DenickRegistry.clear();
         dev.movi.pikastats.tab.MatchOverview.clear();
+        OtherPartyDetector.clear();
         resetOverlays();
     }
 
@@ -85,6 +87,7 @@ public final class PikaStatsMod {
     }
 
     private void resetOverlays() {
+        OtherPartyDetector.clear();
         StatsHudRenderer.clear();
         if (PikaConfig.INSTANCE == null) return;
         if (PikaConfig.INSTANCE.tabHud != null) PikaConfig.INSTANCE.tabHud.resetVisibility();
@@ -106,6 +109,7 @@ public final class PikaStatsMod {
         if (event.phase != TickEvent.Phase.END)
             return;
         partyTracker.tick();
+        OtherPartyDetector.tick();
 
         if (configOpenTicks >= 0) {
             if (configOpenTicks-- == 0) {
@@ -126,6 +130,9 @@ public final class PikaStatsMod {
                     for (NetworkPlayerInfo info : PlayerListUtil.listedPlayers()) {
                         names.add(PlayerListUtil.profileName(info));
                     }
+                    if ((PikaConfig.highlightFriends || PikaConfig.friendsAfterParty)
+                        && net.minecraft.client.Minecraft.getMinecraft().thePlayer != null)
+                        names.add(0, net.minecraft.client.Minecraft.getMinecraft().thePlayer.getName());
                     StatsManager.prime(names);
                 }
                 StatsManager.cleanUp();
