@@ -102,6 +102,5 @@ Install JDK 21 and JDK 8, then run `./gradlew :1.8.9-forge:build` from this dire
 
 Poppins is distributed under the [SIL Open Font License](src/main/resources/assets/pikastats/fonts/OFL.txt). See the [changelog](CHANGELOG.md) for release details.
 
-<picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/discord/members/22EXF28uCb.svg?mode=dark"><img alt="badge" src="https://shieldcn.dev/discord/members/22EXF28uCb.svg?mode=light"></picture>
-
-[Source](https://github.com/liwwyy/PikaStats) · [Discord](https://discord.gg/22EXF28uCb)
+Contact me on discord if you have any issues 
+Username is `liwwyy`
