@@ -1,5 +1,9 @@
 # PikaStats
 
+# This project is no longer maintained. PikaNetwork has implemented API keys, rendering this mod non-functional.
+
+For an alternative, check out [ChuStatsu](https://github.com/liwwyy/ChuStatsu), a Minecraft 1.8.9 Ornithe mod.
+
 ![Powered by OneConfig](https://polyfrost.org/media/branding/badges/badge_1.svg)
 
 **For those who just wanna get the mod, go to the [latest release](https://github.com/liwwyy/PikaStats/releases/latest).**
